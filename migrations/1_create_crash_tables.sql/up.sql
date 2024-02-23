@@ -26,7 +26,7 @@ CREATE TABLE "cris"."crash_edit_data" (
 -- Crash Computed Table Definition
 CREATE TABLE "cris"."crash_computed_data" (
     "crash_id" int4 NOT NULL,
-    "position" geometry(Geometry,4326),
-    "location_id" varchar, 
+    "position" GEOMETRY (GEOMETRY, 4326),
+    "location_id" varchar,
     PRIMARY KEY ("crash_id")
 );
