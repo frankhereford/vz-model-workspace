@@ -7,7 +7,7 @@ CREATE TABLE "cris"."crash_cris_data" (
     "road_type_id" int4,
     "latitude" float8,
     "longitude" float8,
-    "address_confirmed_primary" text,
+    "primary_address" text,
     PRIMARY KEY ("crash_id")
 );
 
@@ -19,7 +19,7 @@ CREATE TABLE "cris"."crash_edit_data" (
     "latitude" float8,
     "longitude" float8,
     "location_id" varchar,
-    "address_confirmed_primary" text,
+    "primary_address" text,
     PRIMARY KEY ("crash_id")
 );
 
