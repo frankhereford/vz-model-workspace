@@ -1,7 +1,7 @@
 -- Create CRIS schema
 CREATE SCHEMA cris;
 
--- Crash CRIS Data Table Definition
+-- Crash CRIS Table Definition
 CREATE TABLE "cris"."crash_cris_data" (
     "crash_id" int4 NOT NULL,
     "road_type_id" int4,
