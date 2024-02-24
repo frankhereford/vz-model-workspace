@@ -30,7 +30,8 @@ def seed(path, table):
 
             # Get column names and values ready
             columns = row.keys()
-            values = [row[col] for col in columns]
+            # Convert empty strings to None
+            values = [row[col] if len(row[col]) > 0 else None for col in columns]
 
             # Build the insert and execute
             insert = sql.SQL("INSERT INTO {} ({}) VALUES ({})").format(
@@ -48,6 +49,8 @@ def seed(path, table):
 
 def main():
     seed(path="./csv/crashes.csv", table="cris.crash_cris_data")
+    seed(path="./csv/units.csv", table="cris.unit_cris_data")
+    seed(path="./csv/locations.csv", table="cris.locations")
 
 
 if __name__ == "__main__":
