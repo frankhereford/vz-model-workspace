@@ -34,3 +34,10 @@ docker compose run python
 ```
 
 - that should dump you in a shell where the `python` directory is bind-mounted on `/application`
+
+## Test Steps
+
+1. Spin the database and run the Python container
+2. Run all up migrations on the DB
+3. Run the seed script
+4. 

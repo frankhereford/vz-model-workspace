@@ -59,3 +59,5 @@ CREATE TABLE cris.locations (
     "location_group" int2 DEFAULT 0,
     PRIMARY KEY ("location_id")
 );
+
+COMMENT ON TABLE cris.locations IS 'Locations of interest to associate with crash records';

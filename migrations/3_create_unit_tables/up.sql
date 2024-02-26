@@ -6,6 +6,8 @@ CREATE TABLE cris.unit_cris_data (
     PRIMARY KEY (unit_id)
 );
 
+COMMENT ON TABLE cris.unit_cris_data IS 'Unit data sourced from CRIS';
+
 -- Unit Edits Table Definition
 CREATE TABLE cris.unit_edit_data (
     unit_id int4 NOT NULL,
@@ -13,8 +15,12 @@ CREATE TABLE cris.unit_edit_data (
     PRIMARY KEY (unit_id)
 );
 
+COMMENT ON TABLE cris.unit_edit_data IS 'Unit data sourced from VZE edits';
+
 -- Unit Computed Table Definition
 CREATE TABLE cris.unit_computed_data (
     unit_id int4 NOT NULL,
     PRIMARY KEY (unit_id)
 );
+
+COMMENT ON TABLE cris.unit_computed_data IS 'Computed unit data sourced from CRIS, VZE edits, or both';
