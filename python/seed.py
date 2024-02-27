@@ -54,6 +54,8 @@ def main():
     seed(path="./csv/unit_types.csv", table="cris.unit_types_lookup")
     seed(path="./csv/road_types.csv", table="cris.road_types_lookup")
 
+    print("Seeding complete.")
+
 
 if __name__ == "__main__":
     main()
