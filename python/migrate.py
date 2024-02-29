@@ -2,9 +2,9 @@
 """
 Apply migrations to VZ Data Model DB
 """
-import csv
 import argparse
-from os import walk
+import csv
+import os
 
 import psycopg2
 from psycopg2 import sql
@@ -29,13 +29,28 @@ def apply_sql(path):
 
 
 def main(args):
-    # TODO: Add direction arg (up or down migration)
-    # TODO: Add method to get directories to iterate and apply either down or up
+    direction = args.direction
+    # TODO: Test applying up and down migrations
+    directory_list = os.listdir("./migrations")
 
-    # TODO: Iterate directories numerically an and call apply_sql on each up or down files
+    # up
+    if direction == "up":
+        directory_list.sort()
+
+    # down
+    if direction == "down":
+        directory_list.sort(reverse=True)
+
+    for directory in directory_list:
+        print(f"Applying ./migrations/{directory}/{direction}.sql")
+        # apply_sql(f"./migrations/{file}/{direction}.sql")
 
     print(f"Migrate {args.direction} complete.")
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--direction", type=str, help="a migration direction")
+    args = parser.parse_args()
+
+    main(args)
