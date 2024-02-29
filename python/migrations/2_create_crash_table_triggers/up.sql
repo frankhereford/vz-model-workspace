@@ -1,6 +1,6 @@
 -- Add trigger to make new rows in "cris"."crash_edit_data" and "cris"."crash_edit_data" on insert new CRIS row
 CREATE OR REPLACE FUNCTION cris.crash_create_edit_and_computed_rows()
-RETURNS TRIGGER LANGUAGE PLPGSQL AS $$
+RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO cris.crash_edit_data (crash_id) 
     VALUES (NEW.crash_id);
@@ -10,22 +10,21 @@ BEGIN
 
     RETURN NEW;
 END;
-$$
+$$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION cris.crash_create_edit_and_computed_rows IS 'Create matching rows in edit and computed tables with same crash_id';
 
-CREATE OR REPLACE TRIGGER crash_create_a_edit_and_computed_rows
-AFTER INSERT ON cris.crash_cris_data
+CREATE OR REPLACE TRIGGER CRASH_CREATE_A_EDIT_AND_COMPUTED_ROWS
+AFTER INSERT ON CRIS.CRASH_CRIS_DATA
 FOR EACH ROW EXECUTE FUNCTION cris.crash_create_edit_and_computed_rows();
 
-COMMENT ON TRIGGER crash_create_a_edit_and_computed_rows ON cris.crash_cris_data IS 'Create matching rows in edit and computed tables with same crash_id as new CRIS record';
+COMMENT ON TRIGGER CRASH_CREATE_A_EDIT_AND_COMPUTED_ROWS ON CRIS.CRASH_CRIS_DATA IS 'Create matching rows in edit and computed tables with same crash_id as new CRIS record';
 
 -- Triggers to populate "cris"."crash_computed_data"
 
 -- Add triggers to calculate position from latitude and longitude on crash insert and also crash edit update
 CREATE OR REPLACE FUNCTION cris.crash_create_position()
-RETURNS trigger LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 DECLARE
     updated_position GEOMETRY (GEOMETRY, 4326);
 BEGIN
@@ -37,18 +36,18 @@ BEGIN
 
    RETURN NEW;
 END;
-$$
+$$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION cris.crash_create_position IS 'Calculate position from latitude and longitude';
 
-CREATE OR REPLACE TRIGGER crash_create_b_cris_position
-AFTER INSERT ON cris.crash_cris_data
+CREATE OR REPLACE TRIGGER CRASH_CREATE_B_CRIS_POSITION
+AFTER INSERT ON CRIS.CRASH_CRIS_DATA
 FOR EACH ROW EXECUTE FUNCTION cris.crash_create_position();
 
-COMMENT ON TRIGGER crash_create_b_cris_position ON cris.crash_cris_data IS 'Create position from latitude and longitude on insert';
+COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_POSITION ON CRIS.CRASH_CRIS_DATA IS 'Create position from latitude and longitude on insert';
 
-CREATE OR REPLACE TRIGGER crash_create_edit_position
-AFTER UPDATE ON cris.crash_edit_data
+CREATE OR REPLACE TRIGGER CRASH_CREATE_EDIT_POSITION
+AFTER UPDATE ON CRIS.CRASH_EDIT_DATA
 FOR EACH ROW EXECUTE FUNCTION cris.crash_create_position();
 
-COMMENT ON TRIGGER crash_create_edit_position on cris.crash_edit_data IS 'Create position from latitude and longitude on update';
+COMMENT ON TRIGGER CRASH_CREATE_EDIT_POSITION ON CRIS.CRASH_EDIT_DATA IS 'Create position from latitude and longitude on update';

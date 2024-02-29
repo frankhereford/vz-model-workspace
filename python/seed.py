@@ -48,9 +48,9 @@ def seed(path, table):
 
 
 def main():
-    # seed(path="./csv/crashes.csv", table="cris.crash_cris_data")
-    # seed(path="./csv/units.csv", table="cris.unit_cris_data")
-    # seed(path="./csv/locations.csv", table="cris.locations")
+    seed(path="./csv/crashes.csv", table="cris.crash_cris_data")
+    seed(path="./csv/units.csv", table="cris.unit_cris_data")
+    seed(path="./csv/locations.csv", table="cris.locations")
     seed(path="./csv/unit_types.csv", table="cris.unit_types_lookup")
     seed(path="./csv/road_types.csv", table="cris.road_types_lookup")
 
