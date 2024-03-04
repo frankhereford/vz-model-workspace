@@ -15,15 +15,30 @@ def get_db_handle():
 def create_schemata(db, schemata):
     with db.cursor() as cursor:
         for schema in schemata:
-            cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
+            print(sql)
+            cursor.execute(sql)
     db.commit()
 
 
 def drop_schemata_except(db, keep_schemata):
+    additional_exceptions = [
+        "public",
+        "tiger",
+        "tiger_data",
+        "topology",
+        "information_schema",
+        "pg_catalog",
+        "pg_toast",
+    ]
+    keep_schemata.extend(additional_exceptions)
     with db.cursor() as cursor:
         cursor.execute("SELECT schema_name FROM information_schema.schemata;")
         all_schemata = [row["schema_name"] for row in cursor.fetchall()]
+        # print(f"all_schemata: {all_schemata}")
         for schema in all_schemata:
             if schema not in keep_schemata:
-                cursor.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
+                sql = f"DROP SCHEMA IF EXISTS {schema} CASCADE;"
+                print(sql)
+                cursor.execute(sql)
     db.commit()
