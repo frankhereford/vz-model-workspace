@@ -299,3 +299,23 @@ FOR EACH ROW EXECUTE FUNCTION cris_facts_units_insert_trigger();
             print(sql_command)
             cursor.execute(sql_command)
         db.commit()
+
+
+def populate_fact_tables(db):
+    with open("seeds/crashes.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        with db.cursor() as cursor:
+            batch = []
+            for i, row in enumerate(reader, start=1):
+                batch.append((row[0], row[3], row[4]))
+                if i % 1000 == 0:
+                    sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id) VALUES (%s, %s, %s);"
+                    print((sql % (row[0], f"'{row[3]}'", row[4])))
+                    cursor.executemany(sql, batch)
+                    batch = []  # Reset the batch
+            # Execute the remaining batch if it's not empty
+            if batch:
+                sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id) VALUES (%s, %s, %s);"
+                cursor.executemany(sql, batch)
+            db.commit()
