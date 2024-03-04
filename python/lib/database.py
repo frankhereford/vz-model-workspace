@@ -13,7 +13,13 @@ def get_db_handle():
     )
 
 
-def create_schemata(db, schemata):
+def create_schemata(db):
+    schemata = [
+        "cris_facts",
+        "visionzero_facts",
+        "cris_lookup",
+        "visionzero_lookup",
+    ]
     with db.cursor() as cursor:
         for schema in schemata:
             sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
@@ -22,8 +28,8 @@ def create_schemata(db, schemata):
     db.commit()
 
 
-def drop_schemata_except(db, keep_schemata):
-    additional_exceptions = [
+def drop_schemata_except(db):
+    keep_schemata = [
         "public",
         "tiger",
         "tiger_data",
@@ -32,7 +38,6 @@ def drop_schemata_except(db, keep_schemata):
         "pg_catalog",
         "pg_toast",
     ]
-    keep_schemata.extend(additional_exceptions)
     with db.cursor() as cursor:
         cursor.execute("SELECT schema_name FROM information_schema.schemata;")
         all_schemata = [row["schema_name"] for row in cursor.fetchall()]

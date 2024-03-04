@@ -3,16 +3,8 @@
 from lib.database import *
 
 db = get_db_handle()
-drop_schemata_except(db, [])
-create_schemata(
-    db,
-    [
-        "cris_facts",
-        "visionzero_facts",
-        "cris_lookup",
-        "visionzero_lookup",
-    ],
-)
+drop_schemata_except(db)
+create_schemata(db)
 create_lookup_tables(db)
 populate_lookup_tables(db)
 set_lookup_sequences(db)
