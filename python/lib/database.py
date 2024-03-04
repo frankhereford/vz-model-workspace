@@ -160,39 +160,39 @@ def populate_lookup_tables(db):
             db.commit()
 
 
-def set_lookup_sequences(db):
-    pairs = [
-        (
-            "cris_lookup.road_types",
-            "visionzero_lookup.road_types",
-            "cris_lookup.road_types_sequence",
-        ),
-        (
-            "cris_lookup.unit_types",
-            "visionzero_lookup.unit_types",
-            "cris_lookup.unit_types_sequence",
-        ),
-    ]
+# def set_lookup_sequences(db):
+#     pairs = [
+#         (
+#             "cris_lookup.road_types",
+#             "visionzero_lookup.road_types",
+#             "cris_lookup.road_types_sequence",
+#         ),
+#         (
+#             "cris_lookup.unit_types",
+#             "visionzero_lookup.unit_types",
+#             "cris_lookup.unit_types_sequence",
+#         ),
+#     ]
 
-    with db.cursor() as cursor:
-        for table1, table2, sequence in pairs:
-            sql = f"SELECT MAX(id) as max FROM {table1};"
-            cursor.execute(sql)
-            max_id1 = cursor.fetchone()["max"] or 0
-            print(sql + " --> " + str(max_id1))
+#     with db.cursor() as cursor:
+#         for table1, table2, sequence in pairs:
+#             sql = f"SELECT MAX(id) as max FROM {table1};"
+#             cursor.execute(sql)
+#             max_id1 = cursor.fetchone()["max"] or 0
+#             print(sql + " --> " + str(max_id1))
 
-            sql = f"SELECT MAX(id) as max FROM {table2};"
-            cursor.execute(sql)
-            max_id2 = cursor.fetchone()["max"] or 0
-            print(sql + " --> " + str(max_id2))
+#             sql = f"SELECT MAX(id) as max FROM {table2};"
+#             cursor.execute(sql)
+#             max_id2 = cursor.fetchone()["max"] or 0
+#             print(sql + " --> " + str(max_id2))
 
-            next_seq_val = max(max_id1, max_id2) + 1
+#             next_seq_val = max(max_id1, max_id2) + 1
 
-            sql = f"ALTER SEQUENCE {sequence} RESTART WITH {next_seq_val};"
-            print(sql)
-            cursor.execute(sql)
+#             sql = f"ALTER SEQUENCE {sequence} RESTART WITH {next_seq_val};"
+#             print(sql)
+#             cursor.execute(sql)
 
-        db.commit()
+#         db.commit()
 
 
 def refresh_materialized_views(db):
@@ -209,4 +209,28 @@ def refresh_materialized_views(db):
             sql = f"REFRESH MATERIALIZED VIEW public.{matview};"
             print(sql)
             cursor.execute(sql)
+        db.commit()
+
+
+def create_fact_tables(db):
+    sql_commands = [
+        """CREATE TABLE cris_facts.crashes (
+    id SERIAL PRIMARY KEY,
+    crash_id INTEGER NOT NULL,
+    primary_address TEXT,
+    road_type_id INTEGER,
+    location GEOMETRY(Point, 4326)
+);""",
+        """CREATE TABLE cris_facts.units (
+    id SERIAL PRIMARY KEY,
+    unit_id TEXT,
+    crash_id INTEGER NOT NULL,
+    unit_type_id INTEGER
+);""",
+    ]
+
+    with db.cursor() as cursor:
+        for sql_command in sql_commands:
+            print(sql_command)
+            cursor.execute(sql_command)
         db.commit()
