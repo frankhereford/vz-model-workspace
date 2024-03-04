@@ -220,13 +220,15 @@ def create_fact_tables(db):
     primary_address TEXT,
     road_type_id INTEGER,
     location GEOMETRY(Point, 4326)
-);""",
+);
+        """,
         """CREATE TABLE cris_facts.units (
     id SERIAL PRIMARY KEY,
     unit_id TEXT,
     crash_id INTEGER NOT NULL,
     unit_type_id INTEGER
-);""",
+);
+        """,
         """CREATE TABLE visionzero_facts.crashes (
     id SERIAL PRIMARY KEY,
     cris_id INTEGER NOT NULL REFERENCES cris_facts.crashes(id) ON DELETE CASCADE,
@@ -234,14 +236,16 @@ def create_fact_tables(db):
     primary_address TEXT,
     road_type_id INTEGER,
     location GEOMETRY(Point, 4326)
-);""",
+);
+        """,
         """CREATE TABLE visionzero_facts.units (
     id SERIAL PRIMARY KEY,
     cris_id INTEGER NOT NULL REFERENCES cris_facts.units(id) ON DELETE CASCADE,
     unit_id TEXT,
     crash_id INTEGER,
     unit_type_id INTEGER
-);""",
+);
+        """,
     ]
 
     with db.cursor() as cursor:
