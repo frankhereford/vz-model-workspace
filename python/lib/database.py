@@ -42,3 +42,30 @@ def drop_schemata_except(db, keep_schemata):
                 print(sql)
                 cursor.execute(sql)
     db.commit()
+
+
+def create_lookup_tables(db):
+    sql_commands = [
+        """
+CREATE TABLE cris_lookup.road_types (
+    id SERIAL PRIMARY KEY,
+    description TEXT
+    );
+        """,
+        """
+CREATE TABLE cris_lookup.unit_types (
+    id SERIAL PRIMARY KEY,
+    description TEXT
+    );
+        """,
+    ]
+    with db.cursor() as cursor:
+        for sql in sql_commands:
+            sql = sql.strip()
+            print(sql)
+            cursor.execute(sql)
+    db.commit()
+
+
+def create_fact_tables(db):
+    sql = " "

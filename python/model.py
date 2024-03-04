@@ -13,4 +13,4 @@ create_schemata(
         "visionzero_lookup",
     ],
 )
-# create_fact_tables(db)
+create_lookup_tables(db)
