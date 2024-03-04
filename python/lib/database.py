@@ -86,9 +86,6 @@ CREATE TABLE visionzero_lookup.unit_types (
     db.commit()
 
 
-import csv
-
-
 def populate_lookup_tables(db):
     with open("seeds/road_types.csv", "r") as f:
         reader = csv.reader(f)
