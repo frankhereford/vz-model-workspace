@@ -58,12 +58,14 @@ CREATE SEQUENCE cris_lookup.road_types_sequence;
         """
 CREATE TABLE cris_lookup.road_types (
     id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.road_types_sequence'),
+    upstream_id INTEGER,
     description TEXT
     );
         """,
         """
 CREATE TABLE visionzero_lookup.road_types (
     id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.road_types_sequence'),
+    upstream_id INTEGER,
     description TEXT
     );
         """,
@@ -73,14 +75,52 @@ CREATE SEQUENCE cris_lookup.unit_types_sequence;
         """
 CREATE TABLE cris_lookup.unit_types (
     id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.unit_types_sequence'),
+    upstream_id INTEGER,
     description TEXT
     );
         """,
         """
 CREATE TABLE visionzero_lookup.unit_types (
     id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.unit_types_sequence'),
+    upstream_id INTEGER,
     description TEXT
     );
+        """,
+        """
+CREATE MATERIALIZED VIEW public.road_types AS
+        SELECT 
+            cris.id, 
+            'cris' AS source, 
+            cris.upstream_id, 
+            cris.description
+        FROM 
+            cris_lookup.road_types AS cris
+    UNION ALL
+        SELECT 
+            visionzero.id, 
+            'visionzero' AS source, 
+            visionzero.upstream_id, 
+            visionzero.description
+        FROM 
+            visionzero_lookup.road_types AS visionzero;
+        """,
+        """
+CREATE MATERIALIZED VIEW public.unit_types AS
+        SELECT 
+            cris.id, 
+            'cris' AS source, 
+            cris.upstream_id, 
+            cris.description
+        FROM 
+            cris_lookup.unit_types AS cris
+    UNION ALL
+        SELECT 
+            visionzero.id, 
+            'visionzero' AS source, 
+            visionzero.upstream_id, 
+            visionzero.description
+        FROM 
+            visionzero_lookup.unit_types AS visionzero;
         """,
     ]
     with db.cursor() as cursor:
@@ -97,7 +137,7 @@ def populate_lookup_tables(db):
         next(reader)  # Skip the header row
         with db.cursor() as cursor:
             for row in reader:
-                sql = "INSERT INTO cris_lookup.road_types (id, description) VALUES (%s, %s) RETURNING id;"
+                sql = "INSERT INTO cris_lookup.road_types (upstream_id, description) VALUES (%s, %s) RETURNING id;"
                 cursor.execute(sql, (row[0], row[1]))
                 returned_id = cursor.fetchone()["id"]
                 print((sql % (row[0], f"'{row[1]}'")) + f" --> {returned_id}")
@@ -107,7 +147,7 @@ def populate_lookup_tables(db):
         next(reader)  # Skip the header row
         with db.cursor() as cursor:
             for row in reader:
-                sql = "INSERT INTO cris_lookup.unit_types (id, description) VALUES (%s, %s) RETURNING id;"
+                sql = "INSERT INTO cris_lookup.unit_types (upstream_id, description) VALUES (%s, %s) RETURNING id;"
                 cursor.execute(sql, (row[0], row[1]))
                 returned_id = cursor.fetchone()["id"]
                 print((sql % (row[0], f"'{row[1]}'")) + f" --> {returned_id}")
