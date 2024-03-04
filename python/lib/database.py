@@ -280,29 +280,6 @@ FOR EACH ROW EXECUTE FUNCTION cris_facts_units_insert_trigger();
         db.commit()
 
 
-def populate_fact_tables(db):
-    with open("seeds/crashes.csv", "r") as f:
-        reader = csv.reader(f)
-        next(reader)  # Skip the header row
-        with db.cursor() as cursor:
-            sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location) VALUES (%s, %s, %s, ST_GeomFromText(%s, 4326));"
-            batch = []
-            for i, row in enumerate(reader, start=1):
-                if i > 100000:
-                    continue
-                # Create a point geometry from the latitude and longitude
-                point = f"POINT({row[2]} {row[1]})"
-                batch.append((row[0], row[3], row[4], point))
-                if i % 100000 == 0:
-                    print((sql % (row[0], f"'{row[3]}'", row[4], point)))
-                    cursor.executemany(sql, batch)
-                    batch = []  # Reset the batch
-            # Execute the remaining batch if it's not empty
-            if batch:
-                cursor.executemany(sql, batch)
-            db.commit()
-
-
 def create_lookup_table_substitution_triggers(db):
     sql_commands = [
         """CREATE OR REPLACE FUNCTION substitute_ldm_crash_lookup_table_ids()
@@ -326,6 +303,27 @@ $$ LANGUAGE plpgsql;
 BEFORE INSERT ON cris_facts.crashes
 FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
         """,
+        """CREATE OR REPLACE FUNCTION substitute_ldm_unit_lookup_table_ids()
+RETURNS TRIGGER AS $$
+DECLARE
+    new_unit_type_id int;
+BEGIN
+    SELECT id INTO new_unit_type_id
+    FROM public.unit_types
+    WHERE source = 'cris' AND upstream_id = NEW.unit_type_id;
+
+    IF FOUND THEN
+        NEW.unit_type_id := new_unit_type_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+        """,
+        """CREATE TRIGGER before_insert_units
+BEFORE INSERT ON cris_facts.units
+FOR EACH ROW EXECUTE FUNCTION substitute_ldm_unit_lookup_table_ids();
+        """,
     ]
 
     with db.cursor() as cursor:
@@ -333,3 +331,26 @@ FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
             print(sql_command)
             cursor.execute(sql_command)
         db.commit()
+
+
+def populate_fact_tables(db):
+    with open("seeds/crashes.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        with db.cursor() as cursor:
+            sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location) VALUES (%s, %s, %s, ST_GeomFromText(%s, 4326));"
+            batch = []
+            for i, row in enumerate(reader, start=1):
+                if i > 100000:
+                    continue
+                # Create a point geometry from the latitude and longitude
+                point = f"POINT({row[2]} {row[1]})"
+                batch.append((row[0], row[3], row[4], point))
+                if i % 100000 == 0:
+                    print((sql % (row[0], f"'{row[3]}'", row[4], point)))
+                    cursor.executemany(sql, batch)
+                    batch = []  # Reset the batch
+            # Execute the remaining batch if it's not empty
+            if batch:
+                cursor.executemany(sql, batch)
+            db.commit()
