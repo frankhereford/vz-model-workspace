@@ -122,6 +122,12 @@ CREATE MATERIALIZED VIEW public.unit_types AS
         FROM 
             visionzero_lookup.unit_types AS visionzero;
         """,
+        """
+CREATE INDEX idx_unit_types_id ON public.unit_types (id);
+        """,
+        """
+CREATE INDEX idx_road_types_id ON public.road_types (id);
+        """,
     ]
     with db.cursor() as cursor:
         for sql in sql_commands:
@@ -186,4 +192,21 @@ def set_lookup_sequences(db):
             print(sql)
             cursor.execute(sql)
 
+        db.commit()
+
+
+def refresh_materialized_views(db):
+    with db.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT matviewname 
+            FROM pg_matviews 
+            WHERE schemaname = 'public'
+        """
+        )
+        matviews = [row["matviewname"] for row in cursor.fetchall()]
+        for matview in matviews:
+            sql = f"REFRESH MATERIALIZED VIEW public.{matview};"
+            print(sql)
+            cursor.execute(sql)
         db.commit()
