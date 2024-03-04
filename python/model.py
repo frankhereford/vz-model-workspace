@@ -14,3 +14,4 @@ create_schemata(
     ],
 )
 create_lookup_tables(db)
+populate_lookup_tables(db)

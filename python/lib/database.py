@@ -1,3 +1,4 @@
+import csv
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -67,5 +68,27 @@ CREATE TABLE cris_lookup.unit_types (
     db.commit()
 
 
-def create_fact_tables(db):
-    sql = " "
+import csv
+
+
+def populate_lookup_tables(db):
+    with open("seeds/road_types.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        with db.cursor() as cursor:
+            for row in reader:
+                sql = "INSERT INTO cris_lookup.road_types (id, description) VALUES (%s, %s) RETURNING id;"
+                cursor.execute(sql, (row[0], row[1]))
+                returned_id = cursor.fetchone()["id"]
+                print((sql % (row[0], f"'{row[1]}'")) + f" → {returned_id}")
+            db.commit()
+    with open("seeds/unit_types.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        with db.cursor() as cursor:
+            for row in reader:
+                sql = "INSERT INTO cris_lookup.unit_types (id, description) VALUES (%s, %s) RETURNING id;"
+                cursor.execute(sql, (row[0], row[1]))
+                returned_id = cursor.fetchone()["id"]
+                print((sql % (row[0], f"'{row[1]}'")) + f" → {returned_id}")
+            db.commit()
