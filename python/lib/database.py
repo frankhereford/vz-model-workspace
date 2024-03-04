@@ -95,7 +95,7 @@ def populate_lookup_tables(db):
                 sql = "INSERT INTO cris_lookup.road_types (id, description) VALUES (%s, %s) RETURNING id;"
                 cursor.execute(sql, (row[0], row[1]))
                 returned_id = cursor.fetchone()["id"]
-                print((sql % (row[0], f"'{row[1]}'")) + f" → {returned_id}")
+                print((sql % (row[0], f"'{row[1]}'")) + f" --> {returned_id}")
             db.commit()
     with open("seeds/unit_types.csv", "r") as f:
         reader = csv.reader(f)
@@ -105,5 +105,40 @@ def populate_lookup_tables(db):
                 sql = "INSERT INTO cris_lookup.unit_types (id, description) VALUES (%s, %s) RETURNING id;"
                 cursor.execute(sql, (row[0], row[1]))
                 returned_id = cursor.fetchone()["id"]
-                print((sql % (row[0], f"'{row[1]}'")) + f" → {returned_id}")
+                print((sql % (row[0], f"'{row[1]}'")) + f" --> {returned_id}")
             db.commit()
+
+
+def set_lookup_sequences(db):
+    pairs = [
+        (
+            "cris_lookup.road_types",
+            "visionzero_lookup.road_types",
+            "cris_lookup.road_types_sequence",
+        ),
+        (
+            "cris_lookup.unit_types",
+            "visionzero_lookup.unit_types",
+            "cris_lookup.unit_types_sequence",
+        ),
+    ]
+
+    with db.cursor() as cursor:
+        for table1, table2, sequence in pairs:
+            sql = f"SELECT MAX(id) as max FROM {table1};"
+            cursor.execute(sql)
+            max_id1 = cursor.fetchone()["max"] or 0
+            print(sql + " --> " + str(max_id1))
+
+            sql = f"SELECT MAX(id) as max FROM {table2};"
+            cursor.execute(sql)
+            max_id2 = cursor.fetchone()["max"] or 0
+            print(sql + " --> " + str(max_id2))
+
+            next_seq_val = max(max_id1, max_id2) + 1
+
+            sql = f"ALTER SEQUENCE {sequence} RESTART WITH {next_seq_val};"
+            print(sql)
+            cursor.execute(sql)
+
+        db.commit()
