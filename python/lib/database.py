@@ -137,6 +137,20 @@ CREATE INDEX idx_road_types_id ON public.road_types (id);
     db.commit()
 
 
+def artifically_descync_sequences_from_cris_data(db):
+    table_names = ["road_types", "unit_types"]
+    with db.cursor() as cursor:
+        for table_name in table_names:
+            sequence = f"cris_lookup.{table_name}_sequence"
+            # Query the current value of the sequence
+            cursor.execute(f"SELECT last_value FROM {sequence};")
+            last_value = cursor.fetchone()["last_value"]
+            # Add 1000 to the current value and set the sequence to the new value
+            new_value = last_value + 999
+            cursor.execute(f"SELECT setval('{sequence}', {new_value});")
+        db.commit()
+
+
 def populate_lookup_tables(db):
     with open("seeds/road_types.csv", "r") as f:
         reader = csv.reader(f)
@@ -306,16 +320,51 @@ def populate_fact_tables(db):
         reader = csv.reader(f)
         next(reader)  # Skip the header row
         with db.cursor() as cursor:
+            sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location) VALUES (%s, %s, %s, ST_GeomFromText(%s, 4326));"
             batch = []
             for i, row in enumerate(reader, start=1):
-                batch.append((row[0], row[3], row[4]))
-                if i % 1000 == 0:
-                    sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id) VALUES (%s, %s, %s);"
-                    print((sql % (row[0], f"'{row[3]}'", row[4])))
+                if i > 100000:
+                    continue
+                # Create a point geometry from the latitude and longitude
+                point = f"POINT({row[2]} {row[1]})"
+                batch.append((row[0], row[3], row[4], point))
+                if i % 100000 == 0:
+                    print((sql % (row[0], f"'{row[3]}'", row[4], point)))
                     cursor.executemany(sql, batch)
                     batch = []  # Reset the batch
             # Execute the remaining batch if it's not empty
             if batch:
-                sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id) VALUES (%s, %s, %s);"
                 cursor.executemany(sql, batch)
             db.commit()
+
+
+def create_lookup_table_substitution_triggers(db):
+    sql_commands = [
+        """CREATE OR REPLACE FUNCTION substitute_ldm_crash_lookup_table_ids()
+RETURNS TRIGGER AS $$
+DECLARE
+    new_road_type_id int;
+BEGIN
+    SELECT id INTO new_road_type_id
+    FROM public.road_types
+    WHERE source = 'cris' AND upstream_id = NEW.road_type_id;
+
+    IF FOUND THEN
+        NEW.road_type_id := new_road_type_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+        """,
+        """CREATE TRIGGER before_insert_crashes
+BEFORE INSERT ON cris_facts.crashes
+FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
+        """,
+    ]
+
+    with db.cursor() as cursor:
+        for sql_command in sql_commands:
+            print(sql_command)
+            cursor.execute(sql_command)
+        db.commit()
