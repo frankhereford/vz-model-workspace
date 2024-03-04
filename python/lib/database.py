@@ -227,6 +227,67 @@ def create_fact_tables(db):
     crash_id INTEGER NOT NULL,
     unit_type_id INTEGER
 );""",
+        """CREATE TABLE visionzero_facts.crashes (
+    id SERIAL PRIMARY KEY,
+    cris_id INTEGER NOT NULL REFERENCES cris_facts.crashes(id) ON DELETE CASCADE,
+    crash_id INTEGER,
+    primary_address TEXT,
+    road_type_id INTEGER,
+    location GEOMETRY(Point, 4326)
+);""",
+        """CREATE TABLE visionzero_facts.units (
+    id SERIAL PRIMARY KEY,
+    cris_id INTEGER NOT NULL REFERENCES cris_facts.units(id) ON DELETE CASCADE,
+    unit_id TEXT,
+    crash_id INTEGER,
+    unit_type_id INTEGER
+);""",
+    ]
+
+    with db.cursor() as cursor:
+        for sql_command in sql_commands:
+            print(sql_command)
+            cursor.execute(sql_command)
+        db.commit()
+
+
+def create_cris_facts_functions(db):
+    sql_commands = [
+        """CREATE OR REPLACE FUNCTION cris_facts_crashes_insert_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO visionzero_facts.crashes (cris_id) VALUES (NEW.id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+        """,
+        """CREATE OR REPLACE FUNCTION cris_facts_units_insert_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO visionzero_facts.units (cris_id) VALUES (NEW.id);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+        """,
+    ]
+
+    with db.cursor() as cursor:
+        for sql_command in sql_commands:
+            print(sql_command)
+            cursor.execute(sql_command)
+        db.commit()
+
+
+def create_cris_facts_triggers(db):
+    sql_commands = [
+        """CREATE TRIGGER trigger_cris_facts_crashes_after_insert
+AFTER INSERT ON cris_facts.crashes
+FOR EACH ROW EXECUTE FUNCTION cris_facts_crashes_insert_trigger();
+        """,
+        """CREATE TRIGGER trigger_cris_facts_units_after_insert
+AFTER INSERT ON cris_facts.units
+FOR EACH ROW EXECUTE FUNCTION cris_facts_units_insert_trigger();
+        """,
     ]
 
     with db.cursor() as cursor:
