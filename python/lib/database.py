@@ -48,14 +48,32 @@ def drop_schemata_except(db, keep_schemata):
 def create_lookup_tables(db):
     sql_commands = [
         """
+CREATE SEQUENCE cris_lookup.road_types_sequence;
+        """,
+        """
 CREATE TABLE cris_lookup.road_types (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.road_types_sequence'),
     description TEXT
     );
         """,
         """
+CREATE TABLE visionzero_lookup.road_types (
+    id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.road_types_sequence'),
+    description TEXT
+    );
+        """,
+        """
+CREATE SEQUENCE cris_lookup.unit_types_sequence;
+        """,
+        """
 CREATE TABLE cris_lookup.unit_types (
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.unit_types_sequence'),
+    description TEXT
+    );
+        """,
+        """
+CREATE TABLE visionzero_lookup.unit_types (
+    id INTEGER PRIMARY KEY DEFAULT nextval('cris_lookup.unit_types_sequence'),
     description TEXT
     );
         """,
