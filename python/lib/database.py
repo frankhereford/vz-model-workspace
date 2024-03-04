@@ -137,11 +137,9 @@ CREATE INDEX idx_road_types_id ON public.road_types (id);
     db.commit()
 
 
-def artifically_descync_sequences_from_cris_data(db):
-    table_names = ["road_types", "unit_types"]
+def artifically_descync_sequences_from_cris_data(db, sequence_names):
     with db.cursor() as cursor:
-        for table_name in table_names:
-            sequence = f"cris_lookup.{table_name}_sequence"
+        for sequence in sequence_names:
             # Query the current value of the sequence
             cursor.execute(f"SELECT last_value FROM {sequence};")
             last_value = cursor.fetchone()["last_value"]
@@ -203,7 +201,7 @@ def create_fact_tables(db):
         """,
         """CREATE TABLE cris_facts.units (
     id SERIAL PRIMARY KEY,
-    unit_id TEXT,
+    unit_id INTEGER NOT NULL,
     crash_id INTEGER NOT NULL,
     unit_type_id INTEGER
 );
@@ -220,7 +218,7 @@ def create_fact_tables(db):
         """CREATE TABLE visionzero_facts.units (
     id SERIAL PRIMARY KEY,
     cris_id INTEGER NOT NULL REFERENCES cris_facts.units(id) ON DELETE CASCADE,
-    unit_id TEXT,
+    unit_id INTEGER,
     crash_id INTEGER,
     unit_type_id INTEGER
 );
@@ -333,7 +331,7 @@ FOR EACH ROW EXECUTE FUNCTION substitute_ldm_unit_lookup_table_ids();
         db.commit()
 
 
-def populate_fact_tables(db):
+def populate_fact_tables(db, batch_size=100000):
     with open("seeds/crashes.csv", "r") as f:
         reader = csv.reader(f)
         next(reader)  # Skip the header row
@@ -341,12 +339,12 @@ def populate_fact_tables(db):
             sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location) VALUES (%s, %s, %s, ST_GeomFromText(%s, 4326));"
             batch = []
             for i, row in enumerate(reader, start=1):
-                if i > 100000:
+                if i > batch_size:
                     continue
                 # Create a point geometry from the latitude and longitude
                 point = f"POINT({row[2]} {row[1]})"
                 batch.append((row[0], row[3], row[4], point))
-                if i % 100000 == 0:
+                if i % batch_size == 0:
                     print((sql % (row[0], f"'{row[3]}'", row[4], point)))
                     cursor.executemany(sql, batch)
                     batch = []  # Reset the batch
@@ -354,3 +352,61 @@ def populate_fact_tables(db):
             if batch:
                 cursor.executemany(sql, batch)
             db.commit()
+    with open("seeds/units.csv", "r") as f:
+        reader = csv.reader(f)
+        next(reader)
+        with db.cursor() as cursor:
+            sql = "INSERT INTO cris_facts.units (unit_id, crash_id, unit_type_id) VALUES (%s, %s, %s);"
+            batch = []
+            for i, row in enumerate(reader, start=1):
+                if i > batch_size:
+                    continue
+                batch.append((row[0], row[1], row[2]))
+                if i % batch_size == 0:
+                    print((sql % (row[0], row[1], row[2])))
+                    cursor.executemany(sql, batch)
+                    batch = []
+            if batch:
+                cursor.executemany(sql, batch)
+            db.commit()
+
+
+# ! should do an example of this using triggers and a table, not just a view
+def create_unifying_fact_views(db):
+    sql_commands = [
+        """
+        CREATE OR REPLACE VIEW public.crashes AS 
+        SELECT 
+            -- could remove the coalsece and just use either one
+            COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
+            COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
+            COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
+            COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location
+        FROM 
+            cris_facts.crashes
+        LEFT JOIN 
+            visionzero_facts.crashes 
+        ON 
+            cris_facts.crashes.id = visionzero_facts.crashes.cris_id;
+        """,
+        """
+        CREATE OR REPLACE VIEW public.units AS 
+        SELECT 
+            -- this could be simply cris_facts.units.unit_id, but does it matter?
+            COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
+            COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
+            COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
+        FROM 
+            cris_facts.units
+        LEFT JOIN 
+            visionzero_facts.units 
+        ON 
+            cris_facts.units.id = visionzero_facts.units.cris_id;
+        """,
+    ]
+
+    with db.cursor() as cursor:
+        for sql_command in sql_commands:
+            print(sql_command)
+            cursor.execute(sql_command)
+        db.commit()
