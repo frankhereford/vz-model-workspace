@@ -5,7 +5,7 @@
 - Start the database
 
 ```bash
-docker compose up -d postgis
+docker compose up -d db
 ```
 
 - connect on localhost on 5432
