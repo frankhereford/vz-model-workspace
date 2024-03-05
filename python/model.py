@@ -2,6 +2,9 @@
 
 from lib.database import *
 
+# limit seed records to one batch or the whole shebang
+BE_QUICK_ABOUT_IT = False
+
 db = get_db_handle()
 
 # fmt: off
@@ -19,5 +22,5 @@ create_cris_facts_functions(db)
 create_cris_facts_triggers(db)
 artifically_descync_sequences_from_cris_data( db, ["cris_facts.crashes_id_seq", "cris_facts.units_id_seq"])
 create_lookup_table_substitution_triggers(db)
-populate_fact_tables(db, batch_size=10000)
+populate_fact_tables(db, BE_QUICK_ABOUT_IT, batch_size=100000)
 create_unifying_fact_views(db)
