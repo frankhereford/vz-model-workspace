@@ -27,16 +27,23 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
         cursor.execute(sql_command)
         road_type_id = cursor.fetchone()["upstream_id"]
 
+    # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
+    sql_command = "SELECT ST_Centroid(geometry) AS centroid FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    print(sql_command)
+    with db.cursor() as cursor:
+        cursor.execute(sql_command)
+        centroid = cursor.fetchone()["centroid"]
+
     # Insert a crash record (using the lookup-value-ids from CRIS)
-    sql_command = """INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id)
-VALUES (%s, %s, %s)
+    sql_command = """INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location)
+VALUES (%s, %s, %s, %s)
 RETURNING crash_id;"""
-    params = (crash_id, primary_address, road_type_id)
+    params = (crash_id, primary_address, road_type_id, centroid)
     with db.cursor() as cursor:
         cursor.execute(sql_command, params)
         inserted_crash_id = cursor.fetchone()["crash_id"]
         print(
-            (sql_command % (params[0], f"'{params[1]}'", params[2]))
+            (sql_command % (params[0], f"'{params[1]}'", params[2], f"'{params[3]}'"))
             + f" --> {inserted_crash_id}"
         )
 
