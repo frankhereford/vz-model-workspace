@@ -6,8 +6,8 @@ from lib.tests import *
 BE_QUICK_ABOUT_IT = True
 BATCH_SIZE = 1e5
 
-BUILD = False
-TEST = True
+BUILD = True
+TEST = not BUILD
 
 db = get_db_handle()
 
@@ -15,7 +15,6 @@ db = get_db_handle()
 
 # fmt: off
 if BUILD is True:
-    # create extension periods cascade;
     disconnect_other_users(db)
     drop_schemata_except(db)
     drop_public_entities(db)
@@ -37,4 +36,5 @@ if BUILD is True:
 
 
 if TEST is True:
-    cris_user_creates_crash_record_with_two_unit_records(db)
+    crash_id = cris_user_creates_crash_record_with_two_unit_records(db)
+    vz_user_changes_a_crash_location(db, crash_id)
