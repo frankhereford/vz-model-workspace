@@ -5,6 +5,7 @@ from lib.database import *
 db = get_db_handle()
 
 # fmt: off
+disconnect_other_users(db)
 drop_schemata_except(db)
 drop_public_entities(db)
 pull_down_locations(db)

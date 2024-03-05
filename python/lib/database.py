@@ -14,6 +14,14 @@ def get_db_handle():
     )
 
 
+def disconnect_other_users(db):
+    with db.cursor() as cursor:
+        cursor.execute(
+            "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'visionzero' AND pid <> pg_backend_pid();"
+        )
+    db.commit()
+
+
 def create_schemata(db):
     schemata = [
         "cris_facts",
@@ -67,22 +75,16 @@ def drop_public_entities(db):
 
 
 def pull_down_locations(db):
-    # Run the pg_dump command with --data-only --column-inserts options
-    command = "pg_dump -t atd_txdot_locations --data-only --column-inserts"
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-    dump_output, error = process.communicate()
+    # Run the pg_dump command and pipe the output into psql
+    command = f"pg_dump -t atd_txdot_locations --column-inserts | PGPASSWORD=vz psql -U vz -h db -d visionzero"
+    print(f"$ {command}")
+    process = subprocess.Popen(
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    _, error = process.communicate()
 
     if process.returncode != 0:
-        print(f"Error occurred while running pg_dump: {error}")
-        return
-
-    # Recreate the table
-    with db.cursor() as cursor:
-        for statement in dump_output.decode().split(";"):
-            if statement.strip():
-                print(statement)
-                cursor.execute(statement)
-        db.commit()
+        print(f"Error occurred while running pg_dump and psql: {error}")
 
 
 def create_lookup_tables(db):
@@ -409,34 +411,32 @@ def populate_fact_tables(db, batch_size=100000):
 # ! should do an example of this using triggers and a table, not just a view
 def create_unifying_fact_views(db):
     sql_commands = [
-        """
-        CREATE OR REPLACE VIEW public.crashes AS 
-        SELECT 
-            -- could remove the coalsece and just use either one
-            COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
-            COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
-            COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
-            COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location
-        FROM 
-            cris_facts.crashes
-        LEFT JOIN 
-            visionzero_facts.crashes 
-        ON 
-            cris_facts.crashes.id = visionzero_facts.crashes.cris_id;
+        """CREATE OR REPLACE VIEW public.crashes AS 
+SELECT 
+    -- could remove the coalsece and just use either one
+    COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
+    COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
+    COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
+    COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location
+FROM 
+    cris_facts.crashes
+LEFT JOIN 
+    visionzero_facts.crashes 
+ON 
+    cris_facts.crashes.id = visionzero_facts.crashes.cris_id;
         """,
-        """
-        CREATE OR REPLACE VIEW public.units AS 
-        SELECT 
-            -- this could be simply cris_facts.units.unit_id, but does it matter?
-            COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
-            COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
-            COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
-        FROM 
-            cris_facts.units
-        LEFT JOIN 
-            visionzero_facts.units 
-        ON 
-            cris_facts.units.id = visionzero_facts.units.cris_id;
+        """CREATE OR REPLACE VIEW public.units AS 
+SELECT 
+    -- this could be simply cris_facts.units.unit_id, but does it matter?
+    COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
+    COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
+    COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
+FROM 
+    cris_facts.units
+LEFT JOIN 
+    visionzero_facts.units 
+ON 
+    cris_facts.units.id = visionzero_facts.units.cris_id;
         """,
     ]
 
