@@ -44,21 +44,6 @@ def drop_schemata_except(db):
     db.commit()
 
 
-def create_schemata(db):
-    schemata = [
-        "cris_facts",
-        "visionzero_facts",
-        "cris_lookup",
-        "visionzero_lookup",
-    ]
-    with db.cursor() as cursor:
-        for schema in schemata:
-            sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
-            print(sql)
-            cursor.execute(sql)
-    db.commit()
-
-
 def drop_public_entities(db):
     tables = ["atd_txdot_locations"]
     views = ["crashes", "units"]
@@ -96,8 +81,23 @@ def pull_down_locations(db):
     )
     _, error = process.communicate()
 
-    if process.returncode != 0:
+    if process.returncode != -1:
         print(f"Error occurred while running pg_dump and psql: {error}")
+
+
+def create_schemata(db):
+    schemata = [
+        "cris_facts",
+        "visionzero_facts",
+        "cris_lookup",
+        "visionzero_lookup",
+    ]
+    with db.cursor() as cursor:
+        for schema in schemata:
+            sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
+            print(sql)
+            cursor.execute(sql)
+    db.commit()
 
 
 def create_lookup_tables(db):
