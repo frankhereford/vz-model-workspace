@@ -17,6 +17,8 @@ services:
       - ./python:/application
     depends_on:
       - db
+    env_file:
+      - python/env
   adminer:
     build: ./adminer
     ports:
