@@ -22,21 +22,6 @@ def disconnect_other_users(db):
     db.commit()
 
 
-def create_schemata(db):
-    schemata = [
-        "cris_facts",
-        "visionzero_facts",
-        "cris_lookup",
-        "visionzero_lookup",
-    ]
-    with db.cursor() as cursor:
-        for schema in schemata:
-            sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
-            print(sql)
-            cursor.execute(sql)
-    db.commit()
-
-
 def drop_schemata_except(db):
     keep_schemata = [
         "public",
@@ -56,6 +41,21 @@ def drop_schemata_except(db):
                 sql = f"DROP SCHEMA IF EXISTS {schema} CASCADE;"
                 print(sql)
                 cursor.execute(sql)
+    db.commit()
+
+
+def create_schemata(db):
+    schemata = [
+        "cris_facts",
+        "visionzero_facts",
+        "cris_lookup",
+        "visionzero_lookup",
+    ]
+    with db.cursor() as cursor:
+        for schema in schemata:
+            sql = f"CREATE SCHEMA IF NOT EXISTS {schema};"
+            print(sql)
+            cursor.execute(sql)
     db.commit()
 
 
