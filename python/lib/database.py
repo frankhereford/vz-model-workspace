@@ -50,6 +50,21 @@ def drop_schemata_except(db):
     db.commit()
 
 
+def drop_public_entities(db):
+    entities = ["road_types", "unit_types", "crashes", "units"]
+    with db.cursor() as cursor:
+        for entity in entities:
+            # Drop the materialized view if it exists
+            if entity in ["road_types", "unit_types"]:
+                sql_command = f"DROP MATERIALIZED VIEW IF EXISTS public.{entity};"
+            # Drop the view if it exists
+            else:
+                sql_command = f"DROP VIEW IF EXISTS public.{entity};"
+            print(sql_command)
+            cursor.execute(sql_command)
+        db.commit()
+
+
 def create_lookup_tables(db):
     sql_commands = [
         """
@@ -344,7 +359,7 @@ def populate_fact_tables(db, batch_size=100000):
                 # Create a point geometry from the latitude and longitude
                 point = f"POINT({row[2]} {row[1]})"
                 batch.append((row[0], row[3], row[4], point))
-                if i % batch_size == 0:
+                if i % int(batch_size / 10) == 0:
                     print((sql % (row[0], f"'{row[3]}'", row[4], point)))
                     cursor.executemany(sql, batch)
                     batch = []  # Reset the batch
@@ -362,7 +377,7 @@ def populate_fact_tables(db, batch_size=100000):
                 if i > batch_size:
                     continue
                 batch.append((row[0], row[1], row[2]))
-                if i % batch_size == 0:
+                if i % int(batch_size / 10) == 0:
                     print((sql % (row[0], row[1], row[2])))
                     cursor.executemany(sql, batch)
                     batch = []

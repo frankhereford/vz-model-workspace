@@ -5,6 +5,7 @@ from lib.database import *
 db = get_db_handle()
 
 drop_schemata_except(db)
+drop_public_entities(db)
 create_schemata(db)
 create_lookup_tables(db)
 artifically_descync_sequences_from_cris_data(
@@ -27,5 +28,5 @@ artifically_descync_sequences_from_cris_data(
     ],
 )
 create_lookup_table_substitution_triggers(db)
-populate_fact_tables(db, batch_size=1000)
+populate_fact_tables(db, batch_size=10000)
 create_unifying_fact_views(db)
