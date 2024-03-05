@@ -14,6 +14,21 @@ def get_db_handle():
     )
 
 
+def ensure_extensions_exists(db):
+    with db.cursor() as cursor:
+        # Create postgis extension if it does not exist
+        sql_command = "CREATE EXTENSION IF NOT EXISTS postgis;"
+        print(sql_command)
+        cursor.execute(sql_command)
+
+        # Create periods extension if it does not exist
+        sql_command = "CREATE EXTENSION IF NOT EXISTS periods CASCADE;"
+        print(sql_command)
+        cursor.execute(sql_command)
+
+        db.commit()
+
+
 def disconnect_other_users(db):
     with db.cursor() as cursor:
         cursor.execute(
@@ -292,11 +307,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
         """,
+        """CREATE OR REPLACE FUNCTION cris_facts_crashes_delete_trigger() 
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM visionzero_facts.crashes WHERE cris_id = OLD.id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+        """,
         """CREATE OR REPLACE FUNCTION cris_facts_units_insert_trigger()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO visionzero_facts.units (cris_id) VALUES (NEW.id);
     RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+        """,
+        """CREATE OR REPLACE FUNCTION cris_facts_units_delete_trigger() 
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM visionzero_facts.units WHERE cris_id = OLD.id;
+    RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
         """,
@@ -315,9 +346,17 @@ def create_cris_facts_triggers(db):
 AFTER INSERT ON cris_facts.crashes
 FOR EACH ROW EXECUTE FUNCTION cris_facts_crashes_insert_trigger();
         """,
+        """CREATE TRIGGER trigger_cris_facts_crashes_after_delete
+AFTER DELETE ON cris_facts.crashes
+FOR EACH ROW EXECUTE FUNCTION cris_facts_crashes_delete_trigger();
+        """,
         """CREATE TRIGGER trigger_cris_facts_units_after_insert
 AFTER INSERT ON cris_facts.units
 FOR EACH ROW EXECUTE FUNCTION cris_facts_units_insert_trigger();
+        """,
+        """CREATE TRIGGER trigger_cris_facts_units_after_delete
+AFTER DELETE ON cris_facts.units
+FOR EACH ROW EXECUTE FUNCTION cris_facts_units_delete_trigger();
         """,
     ]
 
