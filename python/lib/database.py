@@ -418,35 +418,47 @@ def populate_fact_tables(db, batch_size=100000):
             db.commit()
 
 
-# ! should do an example of this using triggers and a table, not just a view
 def create_unifying_fact_views(db):
     sql_commands = [
-        """CREATE OR REPLACE VIEW public.crashes AS 
-SELECT 
-    -- could remove the coalsece and just use either one
-    COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
-    COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
-    COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
-    COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
-    atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
-FROM 
-    cris_facts.crashes
-LEFT JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
-LEFT JOIN public.atd_txdot_locations ON (cris_facts.crashes.location && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, cris_facts.crashes.location))
-;
-        """,
         """CREATE OR REPLACE VIEW public.units AS 
-SELECT 
-    -- this could be simply cris_facts.units.unit_id, but does it matter?
-    COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
-    COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
-    COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
-FROM 
-    cris_facts.units
-LEFT JOIN 
-    visionzero_facts.units 
-ON 
-    cris_facts.units.id = visionzero_facts.units.cris_id;
+    SELECT 
+        -- this could be simply cris_facts.units.unit_id, but does it matter?
+        COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
+        COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
+        COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
+    FROM 
+        cris_facts.units
+    LEFT JOIN 
+        visionzero_facts.units 
+    ON 
+        cris_facts.units.id = visionzero_facts.units.cris_id;
+        """,
+        """CREATE OR REPLACE VIEW public.crashes AS 
+    WITH crash_data AS (
+        SELECT
+            COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
+            COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
+            COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
+            COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
+            atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
+        FROM 
+            cris_facts.crashes
+        LEFT JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
+        LEFT JOIN public.atd_txdot_locations ON (cris_facts.crashes.location && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, cris_facts.crashes.location))
+    )
+    SELECT 
+        crash_data.*,
+        ARRAY_AGG(DISTINCT unit_types.id) AS unit_type_description_ids,
+        ARRAY_AGG(DISTINCT unit_types.description) AS unit_type_descriptions
+    FROM crash_data
+    LEFT JOIN public.units ON crash_data.crash_id = units.crash_id
+    LEFT JOIN public.unit_types ON units.unit_type_id = unit_types.id
+    GROUP BY
+        crash_data.crash_id,
+        crash_data.primary_address,
+        crash_data.road_type_id,
+        crash_data.location,
+        crash_data.location_polygon_hex_id;
         """,
     ]
 
@@ -454,4 +466,4 @@ ON
         for sql_command in sql_commands:
             print(sql_command)
             cursor.execute(sql_command)
-        db.commit()
+            db.commit()
