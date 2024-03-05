@@ -464,13 +464,14 @@ def create_unifying_fact_views(db):
     sql_commands = [
         """CREATE OR REPLACE VIEW public.units AS 
     SELECT 
-        -- this could be simply cris_facts.units.unit_id, but does it matter?
+        cris_facts.units.id AS cris_unit_fact_id,
+        visionzero_facts.units.id AS visionzero_unit_fact_id,
         COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
         COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
         COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
     FROM 
         cris_facts.units
-    LEFT JOIN 
+    JOIN 
         visionzero_facts.units 
     ON 
         cris_facts.units.id = visionzero_facts.units.cris_id;
@@ -478,6 +479,8 @@ def create_unifying_fact_views(db):
         """CREATE OR REPLACE VIEW public.crashes AS 
     WITH crash_data AS (
         SELECT
+            cris_facts.crashes.id AS cris_crash_fact_id,
+            visionzero_facts.crashes.id AS visionzero_crash_fact_id,
             COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
             COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
             COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
@@ -485,7 +488,7 @@ def create_unifying_fact_views(db):
             atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
         FROM 
             cris_facts.crashes
-        LEFT JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
+        JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
         LEFT JOIN public.atd_txdot_locations ON (cris_facts.crashes.location && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, cris_facts.crashes.location))
     )
     SELECT 
@@ -496,6 +499,8 @@ def create_unifying_fact_views(db):
     LEFT JOIN public.units ON crash_data.crash_id = units.crash_id
     LEFT JOIN public.unit_types ON units.unit_type_id = unit_types.id
     GROUP BY
+        crash_data.cris_crash_fact_id,
+        crash_data.visionzero_crash_fact_id,
         crash_data.crash_id,
         crash_data.primary_address,
         crash_data.road_type_id,
