@@ -2,7 +2,6 @@
 
 from lib.database import *
 
-# limit seed records to one batch or the whole shebang
 BE_QUICK_ABOUT_IT = True
 BATCH_SIZE = 1e5
 
