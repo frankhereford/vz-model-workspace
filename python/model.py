@@ -6,8 +6,8 @@ from lib.tests import *
 BE_QUICK_ABOUT_IT = True
 BATCH_SIZE = 1e5
 
-BUILD = True
-TEST = False
+BUILD = False
+TEST = True
 
 db = get_db_handle()
 
