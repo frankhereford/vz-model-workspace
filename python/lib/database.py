@@ -473,8 +473,6 @@ def create_unifying_fact_views(db):
 
 
 def create_temporal_tracking(db):
-    # the unifying view of these history tables is deterministic, and first
-    # round's on me for anyone who figures it out
     tables = [
         "cris_facts.crashes",
         "cris_facts.units",
