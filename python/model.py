@@ -2,11 +2,12 @@
 
 from lib.database import *
 from lib.tests import *
+from lib.colors import colors
 
 BE_QUICK_ABOUT_IT = True
 BATCH_SIZE = 1e5
 
-BUILD = True
+BUILD = False
 TEST = not BUILD
 
 db = get_db_handle()
@@ -35,6 +36,10 @@ if BUILD is True:
     create_unifying_fact_views(db)
 
 
+
+
 if TEST is True:
     crash_id = cris_user_creates_crash_record_with_two_unit_records(db)
-    vz_user_changes_a_crash_location(db, crash_id)
+    print(f"{colors.RED}Created crash_id: {crash_id}{colors.ENDC}")
+    new_location = vz_user_changes_a_crash_location(db, crash_id)
+    print(f"{colors.RED}Changed crash_id: {crash_id} to new location: {new_location}{colors.ENDC}")

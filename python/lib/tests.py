@@ -79,3 +79,40 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
             print((sql_command % params) + f" --> {inserted_unit_id}")
 
     db.commit()
+    return inserted_crash_id
+
+
+def vz_user_changes_a_crash_location(db, crash_id):
+    # Get the visionzero_crash_fact_id for the record with this crash_id
+    sql_command = (
+        "SELECT visionzero_crash_fact_id FROM public.crashes WHERE crash_id = %s;"
+    )
+    print(sql_command % crash_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, (crash_id,))
+        vz_crash_fact_id = cursor.fetchone()["visionzero_crash_fact_id"]
+
+    # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
+    sql_command = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    print(sql_command)
+    with db.cursor() as cursor:
+        cursor.execute(sql_command)
+        record = cursor.fetchone()
+        centroid = record["centroid"]
+        centroid_wkt = record["centroid_wkt"]
+
+    # Update the crash record in visionzero_facts.crashes
+    sql_command = """UPDATE visionzero_facts.crashes SET location = %s
+    WHERE id = %s
+    RETURNING id;"""
+    params = (centroid, vz_crash_fact_id)
+    print((sql_command % (f"'{params[0]}'", params[1])))
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, params)
+        updated_crash_id = cursor.fetchone()["id"]
+        print(
+            (sql_command % (f"'{params[0]}'", params[1])) + f" --> {updated_crash_id}"
+        )
+
+    db.commit()
+    return centroid_wkt
