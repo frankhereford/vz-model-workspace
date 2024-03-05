@@ -7,6 +7,7 @@ db = get_db_handle()
 # fmt: off
 drop_schemata_except(db)
 drop_public_entities(db)
+pull_down_locations(db)
 create_schemata(db)
 create_lookup_tables(db)
 artifically_descync_sequences_from_cris_data( db, ["cris_lookup.road_types_sequence", "cris_lookup.unit_types_sequence"],)

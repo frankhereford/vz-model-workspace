@@ -1,5 +1,6 @@
 import csv
 import psycopg2
+import subprocess
 from psycopg2.extras import RealDictCursor
 
 
@@ -51,7 +52,7 @@ def drop_schemata_except(db):
 
 
 def drop_public_entities(db):
-    entities = ["road_types", "unit_types", "crashes", "units"]
+    entities = ["road_types", "unit_types", "crashes", "units", "locations"]
     with db.cursor() as cursor:
         for entity in entities:
             # Drop the materialized view if it exists
@@ -62,6 +63,25 @@ def drop_public_entities(db):
                 sql_command = f"DROP VIEW IF EXISTS public.{entity};"
             print(sql_command)
             cursor.execute(sql_command)
+        db.commit()
+
+
+def pull_down_locations(db):
+    # Run the pg_dump command with --data-only --column-inserts options
+    command = "pg_dump -t atd_txdot_locations --data-only --column-inserts"
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    dump_output, error = process.communicate()
+
+    if process.returncode != 0:
+        print(f"Error occurred while running pg_dump: {error}")
+        return
+
+    # Recreate the table
+    with db.cursor() as cursor:
+        for statement in dump_output.decode().split(";"):
+            if statement.strip():
+                print(statement)
+                cursor.execute(statement)
         db.commit()
 
 
