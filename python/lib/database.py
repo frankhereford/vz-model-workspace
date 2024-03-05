@@ -86,7 +86,9 @@ def drop_public_entities(db):
 
 def pull_down_locations(db):
     # Run the pg_dump command and pipe the output into psql
-    command = f"pg_dump -t atd_txdot_locations --column-inserts | PGPASSWORD=vz psql -U vz -h db -d visionzero"
+    command = (
+        f"pg_dump -t atd_txdot_locations | PGPASSWORD=vz psql -U vz -h db -d visionzero"
+    )
     print(f"$ {command}")
     process = subprocess.Popen(
         command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -378,7 +380,7 @@ FOR EACH ROW EXECUTE FUNCTION substitute_ldm_unit_lookup_table_ids();
         db.commit()
 
 
-def populate_fact_tables(db, batch_size=100000):
+def populate_fact_tables(db, BE_QUICK_ABOUT_IT=True, batch_size=100000):
     with open("seeds/crashes.csv", "r") as f:
         reader = csv.reader(f)
         next(reader)  # Skip the header row
@@ -386,7 +388,7 @@ def populate_fact_tables(db, batch_size=100000):
             sql = "INSERT INTO cris_facts.crashes (crash_id, primary_address, road_type_id, location) VALUES (%s, %s, %s, ST_GeomFromText(%s, 4326));"
             batch = []
             for i, row in enumerate(reader, start=1):
-                if i > batch_size:
+                if BE_QUICK_ABOUT_IT and i > batch_size:
                     continue
                 # Create a point geometry from the latitude and longitude
                 point = f"POINT({row[2]} {row[1]})"
@@ -406,7 +408,7 @@ def populate_fact_tables(db, batch_size=100000):
             sql = "INSERT INTO cris_facts.units (unit_id, crash_id, unit_type_id) VALUES (%s, %s, %s);"
             batch = []
             for i, row in enumerate(reader, start=1):
-                if i > batch_size:
+                if BE_QUICK_ABOUT_IT and i > batch_size:
                     continue
                 batch.append((row[0], row[1], row[2]))
                 if i % int(batch_size / 10) == 0:
