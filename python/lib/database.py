@@ -35,7 +35,6 @@ def drop_schemata_except(db):
     with db.cursor() as cursor:
         cursor.execute("SELECT schema_name FROM information_schema.schemata;")
         all_schemata = [row["schema_name"] for row in cursor.fetchall()]
-        # print(f"all_schemata: {all_schemata}")
         for schema in all_schemata:
             if schema not in keep_schemata:
                 sql = f"DROP SCHEMA IF EXISTS {schema} CASCADE;"
@@ -60,17 +59,28 @@ def create_schemata(db):
 
 
 def drop_public_entities(db):
-    entities = ["road_types", "unit_types", "crashes", "units", "locations"]
+    tables = ["atd_txdot_locations"]
+    views = ["crashes", "units"]
+    materialized_views = ["road_types", "unit_types"]
+
     with db.cursor() as cursor:
-        for entity in entities:
-            # Drop the materialized view if it exists
-            if entity in ["road_types", "unit_types"]:
-                sql_command = f"DROP MATERIALIZED VIEW IF EXISTS public.{entity};"
-            # Drop the view if it exists
-            else:
-                sql_command = f"DROP VIEW IF EXISTS public.{entity};"
+        for table in tables:
+            sql_command = f"DROP TABLE IF EXISTS public.{table};"
             print(sql_command)
             cursor.execute(sql_command)
+
+        for view in views:
+            sql_command = f"DROP VIEW IF EXISTS public.{view};"
+            print(sql_command)
+            cursor.execute(sql_command)
+
+        for materialized_view in materialized_views:
+            sql_command = (
+                f"DROP MATERIALIZED VIEW IF EXISTS public.{materialized_view};"
+            )
+            print(sql_command)
+            cursor.execute(sql_command)
+
         db.commit()
 
 
@@ -417,13 +427,13 @@ SELECT
     COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
     COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
     COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
-    COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location
+    COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
+    atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
 FROM 
     cris_facts.crashes
-LEFT JOIN 
-    visionzero_facts.crashes 
-ON 
-    cris_facts.crashes.id = visionzero_facts.crashes.cris_id;
+LEFT JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
+LEFT JOIN public.atd_txdot_locations ON (cris_facts.crashes.location && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, cris_facts.crashes.location))
+;
         """,
         """CREATE OR REPLACE VIEW public.units AS 
 SELECT 
