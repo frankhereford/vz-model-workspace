@@ -11,6 +11,7 @@ TEST = True
 
 db = get_db_handle()
 
+# todo - add maintenance functions to VZ side, so you can insert on it as well and get the empty cris record
 
 # fmt: off
 if BUILD is True:
