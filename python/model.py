@@ -39,7 +39,7 @@ if BUILD is True:
 
 
 if TEST is True:
-    crash_id = cris_user_creates_crash_record_with_two_unit_records(db)
-    print(f"{colors.RED}Created crash_id: {crash_id}{colors.ENDC}")
-    new_location = vz_user_changes_a_crash_location(db, crash_id)
-    print(f"{colors.RED}Changed crash_id: {crash_id} to new location: {new_location}{colors.ENDC}")
+    crash_id, unit_ids = cris_user_creates_crash_record_with_two_unit_records(db)
+    print(f"{colors.RED}Created crash_id as a CRIS user, {crash_id}, with unit_ids: {unit_ids}{colors.ENDC}")
+    new_location, new_polygon_value = vz_user_changes_a_crash_location(db, crash_id)
+    print(f"{colors.RED}As a VZ user, changed crash_id {crash_id} to new location as a VZ user: {new_location} which places it in {new_polygon_value}.{colors.ENDC}")

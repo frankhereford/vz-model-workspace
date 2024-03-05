@@ -50,6 +50,7 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
     db.commit()
 
     # Generate two unit records related to the crash record
+    inserted_unit_ids = []
     for _ in range(2):
         # Generate a unit_id that is an integer but is not used in the table already
         sql_command = "SELECT MAX(unit_id) AS max FROM cris_facts.units;"
@@ -76,10 +77,11 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
         with db.cursor() as cursor:
             cursor.execute(sql_command, params)
             inserted_unit_id = cursor.fetchone()["unit_id"]
+            inserted_unit_ids.append(inserted_unit_id)
             print((sql_command % params) + f" --> {inserted_unit_id}")
 
     db.commit()
-    return inserted_crash_id
+    return inserted_crash_id, inserted_unit_ids
 
 
 def vz_user_changes_a_crash_location(db, crash_id):
@@ -115,4 +117,14 @@ def vz_user_changes_a_crash_location(db, crash_id):
         )
 
     db.commit()
-    return centroid_wkt
+
+    sql_command = (
+        "SELECT location_polygon_hex_id FROM public.crashes WHERE crash_id = %s;"
+    )
+    print(sql_command % crash_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, (crash_id,))
+        location_polygon_hex_id = cursor.fetchone()["location_polygon_hex_id"]
+
+    db.commit()
+    return centroid_wkt, location_polygon_hex_id
