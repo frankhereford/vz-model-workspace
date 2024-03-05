@@ -4,9 +4,11 @@ from lib.database import *
 
 # limit seed records to one batch or the whole shebang
 BE_QUICK_ABOUT_IT = True
-BATCH_SIZE = 1e6
+BATCH_SIZE = 1e5
 
 db = get_db_handle()
+
+# create extension periods cascade;
 
 # fmt: off
 disconnect_other_users(db)
@@ -21,6 +23,7 @@ refresh_materialized_views(db)
 create_fact_tables(db)
 create_cris_facts_functions(db)
 create_cris_facts_triggers(db)
+create_temporal_tracking(db)
 artifically_descync_sequences_from_cris_data( db, ["cris_facts.crashes_id_seq", "cris_facts.units_id_seq"])
 create_lookup_table_substitution_triggers(db)
 populate_fact_tables(db, BE_QUICK_ABOUT_IT, batch_size=BATCH_SIZE)

@@ -31,6 +31,7 @@ def drop_schemata_except(db):
         "information_schema",
         "pg_catalog",
         "pg_toast",
+        "periods",
     ]
     with db.cursor() as cursor:
         cursor.execute("SELECT schema_name FROM information_schema.schemata;")
@@ -469,3 +470,28 @@ def create_unifying_fact_views(db):
             print(sql_command)
             cursor.execute(sql_command)
             db.commit()
+
+
+def create_temporal_tracking(db):
+    tables = [
+        "cris_facts.crashes",
+        "cris_facts.units",
+        "visionzero_facts.crashes",
+        "visionzero_facts.units",
+    ]
+    with db.cursor() as cursor:
+        for table in tables:
+            # Add system time period
+            sql_command = f"SELECT periods.add_system_time_period('{table}', 'validity_start', 'validity_end');"
+            print(sql_command)
+            cursor.execute(sql_command)
+
+            # Add system versioning
+            sql_command = f"SELECT periods.add_system_versioning('{table}');"
+            print(sql_command)
+            cursor.execute(sql_command)
+
+        db.commit()
+
+
+# the unifying view of these history tables is deterministic, and first round's on me for anyone who figures it out.
