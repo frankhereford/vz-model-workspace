@@ -209,3 +209,29 @@ def cris_user_update_crash_location_and_road_type(db, crash_id):
         location_polygon_hex_id = cursor.fetchone()["location_polygon_hex_id"]
 
     return updated_crash_id, centroid_wkt, road_type_id, location_polygon_hex_id
+
+
+def cris_user_changes_a_unit_type(db, crash_id):
+    sql = "SELECT cris_unit_fact_id, unit_type_id, unit_id FROM public.units WHERE crash_id = %s ORDER BY random() LIMIT 1;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (crash_id,))
+        record = cursor.fetchone()
+        cris_unit_fact_id = record["cris_unit_fact_id"]
+        initial_unit_type_id = record["unit_type_id"]
+        unit_id_cris_space = record["unit_id"]
+        print(sql % crash_id + " --> " + str(cris_unit_fact_id))
+
+    sql = "SELECT upstream_id FROM cris_lookup.unit_types WHERE id != %s ORDER BY random() LIMIT 1;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (initial_unit_type_id,))
+        unit_type_id = cursor.fetchone()["upstream_id"]
+        print(sql % initial_unit_type_id + f" --> {unit_type_id}")
+
+    sql = "UPDATE cris_facts.units SET unit_type_id = %s WHERE id = %s RETURNING unit_type_id;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (unit_type_id, cris_unit_fact_id))
+        updated_unit_type_id = cursor.fetchone()["unit_type_id"]
+        print(sql % (unit_type_id, cris_unit_fact_id) + f" --> {updated_unit_type_id}")
+
+    db.commit()
+    return unit_id_cris_space, initial_unit_type_id, updated_unit_type_id
