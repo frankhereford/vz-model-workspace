@@ -372,17 +372,20 @@ def create_lookup_table_substitution_triggers(db):
         """CREATE OR REPLACE FUNCTION substitute_ldm_crash_lookup_table_ids()
 RETURNS TRIGGER AS $$
 DECLARE
-    new_road_type_id int;
+  new_road_type_id int;
 BEGIN
+  -- Check if the road_type_id column is being updated
+  IF NEW.road_type_id IS DISTINCT FROM OLD.road_type_id THEN
     SELECT id INTO new_road_type_id
     FROM public.road_types
     WHERE source = 'cris' AND upstream_id = NEW.road_type_id;
-
+    
     IF FOUND THEN
-        NEW.road_type_id := new_road_type_id;
+      NEW.road_type_id := new_road_type_id;
     END IF;
-
-    RETURN NEW;
+  END IF;
+  
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
         """,
@@ -393,17 +396,20 @@ FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
         """CREATE OR REPLACE FUNCTION substitute_ldm_unit_lookup_table_ids()
 RETURNS TRIGGER AS $$
 DECLARE
-    new_unit_type_id int;
+  new_unit_type_id int;
 BEGIN
+  -- Check if the unit_type_id column is being updated
+  IF NEW.unit_type_id IS DISTINCT FROM OLD.unit_type_id THEN
     SELECT id INTO new_unit_type_id
     FROM public.unit_types
     WHERE source = 'cris' AND upstream_id = NEW.unit_type_id;
-
+    
     IF FOUND THEN
-        NEW.unit_type_id := new_unit_type_id;
+      NEW.unit_type_id := new_unit_type_id;
     END IF;
-
-    RETURN NEW;
+  END IF;
+  
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
         """,
@@ -489,7 +495,7 @@ def create_unifying_fact_views(db):
         FROM 
             cris_facts.crashes
         JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
-        LEFT JOIN public.atd_txdot_locations ON (cris_facts.crashes.location && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, cris_facts.crashes.location))
+        LEFT JOIN public.atd_txdot_locations ON (COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) && public.atd_txdot_locations.geometry AND ST_Contains(public.atd_txdot_locations.geometry, COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location)))
     )
     SELECT 
         crash_data.*,
