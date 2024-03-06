@@ -393,6 +393,10 @@ $$ LANGUAGE plpgsql;
 BEFORE INSERT ON cris_facts.crashes
 FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
         """,
+        """CREATE TRIGGER before_update_crashes
+BEFORE UPDATE ON cris_facts.crashes
+FOR EACH ROW EXECUTE FUNCTION substitute_ldm_crash_lookup_table_ids();
+        """,
         """CREATE OR REPLACE FUNCTION substitute_ldm_unit_lookup_table_ids()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -415,6 +419,10 @@ $$ LANGUAGE plpgsql;
         """,
         """CREATE TRIGGER before_insert_units
 BEFORE INSERT ON cris_facts.units
+FOR EACH ROW EXECUTE FUNCTION substitute_ldm_unit_lookup_table_ids();
+        """,
+        """CREATE TRIGGER before_update_units
+BEFORE UPDATE ON cris_facts.units
 FOR EACH ROW EXECUTE FUNCTION substitute_ldm_unit_lookup_table_ids();
         """,
     ]
