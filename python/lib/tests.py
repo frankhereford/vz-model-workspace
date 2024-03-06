@@ -172,7 +172,6 @@ def cris_user_update_crash_location_and_road_type(db, crash_id):
         centroid_wkt = record["centroid_wkt"]
 
     sql = "select road_type_id from cris_facts.crashes where id = %s;"
-    print(sql % cris_crash_fact_id)
     with db.cursor() as cursor:
         cursor.execute(sql, (cris_crash_fact_id,))
         old_road_type_id = cursor.fetchone()["road_type_id"]
