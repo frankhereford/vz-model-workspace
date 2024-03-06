@@ -108,7 +108,6 @@ def vz_user_changes_a_crash_location(db, crash_id):
     WHERE id = %s
     RETURNING id;"""
     params = (centroid, vz_crash_fact_id)
-    print((sql_command % (f"'{params[0]}'", params[1])))
     with db.cursor() as cursor:
         cursor.execute(sql_command, params)
         updated_crash_id = cursor.fetchone()["id"]
@@ -128,3 +127,85 @@ def vz_user_changes_a_crash_location(db, crash_id):
 
     db.commit()
     return centroid_wkt, location_polygon_hex_id
+
+
+def vz_user_changes_a_unit_type(db, crash_id):
+    sql = "select visionzero_unit_fact_id, unit_type_id, unit_id from public.units where crash_id = %s order by random() limit 1;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (crash_id,))
+        record = cursor.fetchone()
+        unit_id = record["visionzero_unit_fact_id"]
+        initial_unit_type_id = record["unit_type_id"]
+        unit_id_cris_space = record["unit_id"]
+        print(sql % crash_id + " --> " + str(unit_id))
+
+    sql = "SELECT id FROM public.unit_types where id != %s ORDER BY random() LIMIT 1;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (initial_unit_type_id,))
+        unit_type_id = cursor.fetchone()["id"]
+        print(sql + f" --> {unit_type_id}")
+
+    sql = "update visionzero_facts.units set unit_type_id = %s where id = %s returning unit_type_id;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (unit_type_id, unit_id))
+        updated_unit_id = cursor.fetchone()["unit_type_id"]
+        print(sql % (unit_type_id, unit_id) + f" --> {updated_unit_id}")
+
+    db.commit()
+    return unit_id_cris_space, initial_unit_type_id, unit_type_id
+
+
+def cris_user_update_crash_location_and_road_type(db, crash_id):
+    sql = "SELECT cris_crash_fact_id FROM public.crashes WHERE crash_id = %s;"
+    print(sql % crash_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql, (crash_id,))
+        cris_crash_fact_id = cursor.fetchone()["cris_crash_fact_id"]
+
+    # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
+    sql = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    print(sql)
+    with db.cursor() as cursor:
+        cursor.execute(sql)
+        record = cursor.fetchone()
+        centroid = record["centroid"]
+        centroid_wkt = record["centroid_wkt"]
+
+    sql = "select road_type_id from cris_facts.crashes where id = %s;"
+    print(sql % cris_crash_fact_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql, (cris_crash_fact_id,))
+        old_road_type_id = cursor.fetchone()["road_type_id"]
+        print(sql % cris_crash_fact_id + f" --> {old_road_type_id}")
+
+    # Get a valid road_type_id from cris_lookup.road_types.upstream_id
+    sql = "SELECT upstream_id FROM cris_lookup.road_types where id != %s ORDER BY random() LIMIT 1;"
+    print(sql)
+    with db.cursor() as cursor:
+        cursor.execute(sql, (old_road_type_id,))
+        road_type_id = cursor.fetchone()["upstream_id"]
+
+    # NB, you use the IDs that CRIS uses, and they are translated in passing to be stored into the LDM values
+    sql = """UPDATE cris_facts.crashes SET location = %s, road_type_id = %s
+    WHERE id = %s
+    RETURNING id;"""
+    params = (centroid, road_type_id, cris_crash_fact_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql, params)
+        updated_crash_id = cursor.fetchone()["id"]
+        print(
+            (sql % (f"'{params[0]}'", params[1], params[2]))
+            + f" --> {updated_crash_id}"
+        )
+
+    db.commit()
+
+    sql_command = (
+        "SELECT location_polygon_hex_id FROM public.crashes WHERE crash_id = %s;"
+    )
+    print(sql_command % crash_id)
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, (crash_id,))
+        location_polygon_hex_id = cursor.fetchone()["location_polygon_hex_id"]
+
+    return updated_crash_id, centroid_wkt, road_type_id, location_polygon_hex_id
