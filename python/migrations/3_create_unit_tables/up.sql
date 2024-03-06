@@ -3,7 +3,11 @@ CREATE TABLE cris.unit_cris_data (
     unit_id int4 NOT NULL,
     crash_id int4 NOT NULL,
     unit_type_id int4,
-    PRIMARY KEY (unit_id)
+    PRIMARY KEY (unit_id),
+    CONSTRAINT fk_crash_id
+    FOREIGN KEY (crash_id)
+    REFERENCES cris.crash_cris_data (crash_id)
+    ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 COMMENT ON TABLE cris.unit_cris_data IS 'Unit data sourced from CRIS';

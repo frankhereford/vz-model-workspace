@@ -19,7 +19,6 @@ CREATE TABLE cris.crash_edit_data (
     "road_type_id" int4,
     "latitude" float8,
     "longitude" float8,
-    "location_id" varchar,
     "primary_address" text,
     PRIMARY KEY ("crash_id")
 );
@@ -29,7 +28,6 @@ COMMENT ON TABLE cris.crash_edit_data IS 'Crash data sourced from VZE edits';
 -- Crash Computed Table Definition
 CREATE TABLE cris.crash_computed_data (
     "crash_id" int4 NOT NULL,
-    "position" GEOMETRY (GEOMETRY, 4326),
     "location_id" varchar,
     "unique_unit_types" jsonb,
     PRIMARY KEY ("crash_id")

@@ -15,3 +15,9 @@ CREATE TABLE cris.road_types_lookup (
 );
 
 COMMENT ON TABLE cris.road_types_lookup IS 'Lookup table for crash road types';
+
+-- Add foreign key constraint on crash edit table to road types lookup table
+ALTER TABLE cris.crash_edit_data ADD CONSTRAINT fk_road_type_id
+FOREIGN KEY (road_type_id)
+REFERENCES cris.road_types_lookup (id)
+ON DELETE SET NULL;

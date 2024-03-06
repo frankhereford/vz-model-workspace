@@ -10,6 +10,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./python:/application
     ports:
       - 5432:5432
   python:
