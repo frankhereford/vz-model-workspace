@@ -288,6 +288,10 @@ def create_fact_tables(db):
     unit_type_id INTEGER
 );
         """,
+        "CREATE INDEX idx_crashes_cris_id ON visionzero_facts.crashes (cris_id);",
+        "CREATE INDEX idx_crashes_id ON cris_facts.crashes (id);",
+        "CREATE INDEX idx_units_crash_id_id ON cris_facts.units (crash_id, id);",
+        "CREATE INDEX idx_units_cris_id_crash_id ON visionzero_facts.units (cris_id, crash_id);",
     ]
 
     with db.cursor() as cursor:
