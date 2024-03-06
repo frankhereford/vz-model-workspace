@@ -4,6 +4,9 @@ from lorem_text import lorem
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from tabulate import tabulate
+from pygments import highlight
+from pygments.lexers import SqlLexer
+from pygments.formatters import TerminalFormatter
 
 
 def cris_user_creates_crash_record_with_two_unit_records(db):
@@ -13,7 +16,7 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
 
     # Generate a crash_id that is an integer but is not used in the table already
     sql_command = "SELECT MAX(crash_id) AS max FROM cris_facts.crashes;"
-    print(sql_command)
+    print(highlight(sql_command, SqlLexer(), TerminalFormatter()))
     with db.cursor() as cursor:
         cursor.execute(sql_command)
         max_crash_id = cursor.fetchone()["max"]
@@ -29,7 +32,7 @@ def cris_user_creates_crash_record_with_two_unit_records(db):
         road_type_id = cursor.fetchone()["upstream_id"]
 
     # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
-    sql_command = "SELECT ST_Centroid(geometry) AS centroid FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    sql_command = "SELECT ST_Centroid(geometry) AS centroid FROM public.atd_txdot_locations where location_group = 1 ORDER BY random() LIMIT 1;"
     print(sql_command)
     with db.cursor() as cursor:
         cursor.execute(sql_command)
@@ -96,7 +99,7 @@ def vz_user_changes_a_crash_location(db, crash_id):
         vz_crash_fact_id = cursor.fetchone()["visionzero_crash_fact_id"]
 
     # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
-    sql_command = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    sql_command = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations where location_group = 1 ORDER BY random() LIMIT 1;"
     print(sql_command)
     with db.cursor() as cursor:
         cursor.execute(sql_command)
@@ -164,7 +167,7 @@ def cris_user_update_crash_location_and_road_type(db, crash_id):
         cris_crash_fact_id = cursor.fetchone()["cris_crash_fact_id"]
 
     # Get a PostGIS point from the centroid of a random record in public.atd_txdot_locations.geometry
-    sql = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations ORDER BY random() LIMIT 1;"
+    sql = "SELECT ST_Centroid(geometry) AS centroid, ST_ASTEXT(ST_Centroid(geometry)) as centroid_wkt FROM public.atd_txdot_locations where location_group = 1 ORDER BY random() LIMIT 1;"
     print(sql)
     with db.cursor() as cursor:
         cursor.execute(sql)
