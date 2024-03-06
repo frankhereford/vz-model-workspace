@@ -78,6 +78,14 @@ def main():
         print(f"{colors.RED}As a CRIS user, changed unit_type_id {initial_unit_type_id} to {updated_unit_type_id} for crash_id {crash_id}, unit_id {unit_id_cris_space}.{colors.ENDC}")
         # input()
 
+        inserted_id, lorem_word, new_road_type_id = vz_user_creates_custom_lookup_value_and_uses_it(db, crash_id)
+        print(f"{colors.RED}As a VZ user, inserted a new lookup value with id {inserted_id} and value '{lorem_word}'.{colors.ENDC}")
+        print(f"{colors.RED}As a VZ user, updated crash_id {crash_id} to use the new road_type_id {new_road_type_id}.{colors.ENDC}")
+        # input()
+
+        query_a_single_crash_for_truth(db, crash_id)
+        query_all_crashes_for_truth_and_print_ten_of_them(db)
+
 
 if __name__ == "__main__":
     main()
