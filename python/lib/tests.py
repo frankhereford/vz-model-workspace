@@ -217,9 +217,14 @@ def cris_user_changes_a_unit_type(db, crash_id):
         cursor.execute(sql, (crash_id,))
         record = cursor.fetchone()
         cris_unit_fact_id = record["cris_unit_fact_id"]
-        initial_unit_type_id = record["unit_type_id"]
-        unit_id_cris_space = record["unit_id"]
+        unit_id = record["unit_id"]
         print(sql % crash_id + " --> " + str(cris_unit_fact_id))
+
+    sql = "select unit_type_id from cris_facts.units where id = %s;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (cris_unit_fact_id,))
+        initial_unit_type_id = cursor.fetchone()["unit_type_id"]
+        print(sql % cris_unit_fact_id + f" --> {initial_unit_type_id}")
 
     sql = "SELECT upstream_id FROM cris_lookup.unit_types WHERE id != %s ORDER BY random() LIMIT 1;"
     with db.cursor() as cursor:
@@ -234,4 +239,5 @@ def cris_user_changes_a_unit_type(db, crash_id):
         print(sql % (unit_type_id, cris_unit_fact_id) + f" --> {updated_unit_type_id}")
 
     db.commit()
-    return unit_id_cris_space, initial_unit_type_id, updated_unit_type_id
+
+    return unit_id, initial_unit_type_id, unit_type_id
