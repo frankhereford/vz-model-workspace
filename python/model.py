@@ -4,10 +4,10 @@ from lib.database import *
 from lib.tests import *
 from lib.colors import colors
 
-BE_QUICK_ABOUT_IT = True
+BE_QUICK_ABOUT_IT = False
 BATCH_SIZE = 1e5
 
-BUILD = False
+BUILD = True
 TEST = not BUILD
 
 db = get_db_handle()
