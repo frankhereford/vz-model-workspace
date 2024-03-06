@@ -3,6 +3,7 @@ import string
 from lorem_text import lorem
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from tabulate import tabulate
 
 
 def cris_user_creates_crash_record_with_two_unit_records(db):
@@ -240,3 +241,85 @@ def cris_user_changes_a_unit_type(db, crash_id):
     db.commit()
 
     return unit_id, initial_unit_type_id, unit_type_id
+
+
+def vz_user_creates_custom_lookup_value_and_uses_it(db, crash_id):
+    # Generate a single word of Lorem Ipsum
+    lorem_word = lorem.words(1)
+
+    # SQL command to insert a new record into visionzero_lookup.road_types
+    sql_command = "INSERT INTO visionzero_lookup.road_types (description) VALUES (%s) RETURNING id;"
+
+    # Execute the SQL command
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, (lorem_word,))
+        inserted_id = cursor.fetchone()["id"]
+        print(sql_command % f"'{lorem_word}'" + f" --> {inserted_id}")
+
+    # Refresh the materialized view
+    sql_command = "REFRESH MATERIALIZED VIEW public.road_types;"
+    with db.cursor() as cursor:
+        cursor.execute(sql_command)
+        print(sql_command)
+
+    db.commit()
+
+    # Select the id of the record with the generated description
+    sql_command = "SELECT id FROM public.road_types WHERE description = %s;"
+    with db.cursor() as cursor:
+        cursor.execute(sql_command, (lorem_word,))
+        new_road_type_id = cursor.fetchone()["id"]
+        print((sql_command % f"'{lorem_word}'") + f" --> {new_road_type_id}")
+
+    sql = "select visionzero_crash_fact_id from public.crashes where crash_id = %s"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (crash_id,))
+        record = cursor.fetchone()
+        crash_fact_id = record["visionzero_crash_fact_id"]
+        print(sql % crash_id + " --> " + str(crash_fact_id))
+
+    sql = "update visionzero_facts.crashes set road_type_id = %s where id = %s returning road_type_id;"
+    with db.cursor() as cursor:
+        cursor.execute(sql, (new_road_type_id, crash_fact_id))
+        updated_road_type_id = cursor.fetchone()["road_type_id"]
+        print(sql % (new_road_type_id, crash_id) + f" --> {updated_road_type_id}")
+
+    return inserted_id, lorem_word, new_road_type_id
+
+
+def print_table_from_sql(db, sql, params):
+    with db.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(sql, params)
+        records = cursor.fetchall()
+
+        if records:
+            # Get the column names from the first record's dictionary keys
+            column_names = list(records[0].keys())
+
+            # Convert each record dictionary to a list of values
+            records_values = [list(record.values()) for record in records]
+
+            # Format the records using tabulate
+            table = tabulate(records_values, headers=column_names, tablefmt="grid")
+
+            print(sql % params)
+            print(table)
+        else:
+            print(f"No record found with parameters: {params}")
+
+
+def query_a_single_crash_for_truth(db, crash_id):
+    sql = "SELECT * FROM public.crashes WHERE crash_id = %s;"
+    print_table_from_sql(db, sql, (crash_id,))
+
+
+def query_all_crashes_for_truth_and_print_ten_of_them(db):
+    sql = """
+    WITH all_crashes AS (
+        SELECT * FROM public.crashes
+    )
+    SELECT * FROM all_crashes
+    ORDER BY RANDOM()
+    LIMIT 10;
+    """
+    print_table_from_sql(db, sql, ())

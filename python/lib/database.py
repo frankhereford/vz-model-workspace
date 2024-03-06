@@ -475,13 +475,17 @@ def populate_fact_tables(db, BE_QUICK_ABOUT_IT=True, batch_size=100000):
 
 
 def create_unifying_fact_views(db):
+    # COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
+    # COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
+
+    # COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
     sql_commands = [
         """CREATE OR REPLACE VIEW public.units AS 
     SELECT 
         cris_facts.units.id AS cris_unit_fact_id,
         visionzero_facts.units.id AS visionzero_unit_fact_id,
-        COALESCE(visionzero_facts.units.unit_id, cris_facts.units.unit_id) AS unit_id,
-        COALESCE(visionzero_facts.units.crash_id, cris_facts.units.crash_id) AS crash_id,
+        cris_facts.units.unit_id as unit_id,
+        cris_facts.units.crash_id as crash_id,
         COALESCE(visionzero_facts.units.unit_type_id, cris_facts.units.unit_type_id) AS unit_type_id
     FROM 
         cris_facts.units
@@ -495,7 +499,7 @@ def create_unifying_fact_views(db):
         SELECT
             cris_facts.crashes.id AS cris_crash_fact_id,
             visionzero_facts.crashes.id AS visionzero_crash_fact_id,
-            COALESCE(visionzero_facts.crashes.crash_id, cris_facts.crashes.crash_id) AS crash_id,
+            cris_facts.crashes.crash_id AS crash_id,
             COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
             COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
             COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
