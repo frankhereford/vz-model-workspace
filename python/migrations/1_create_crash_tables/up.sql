@@ -4,11 +4,10 @@ CREATE SCHEMA cris;
 -- Crash CRIS Table Definition
 CREATE TABLE cris.crash_cris_data (
     "crash_id" int4 NOT NULL,
-    "road_type_id" int4,
     "latitude" float8,
     "longitude" float8,
     "primary_address" text,
-    "non_editable_field" text,
+    "road_type_id" int4,
     PRIMARY KEY ("crash_id")
 );
 
