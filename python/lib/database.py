@@ -72,7 +72,7 @@ def drop_schemata_except(db):
 
 
 def drop_public_entities(db):
-    tables = ["atd_txdot_locations", "units", "crash_location_map_immv"]
+    tables = ["atd_txdot_locations", "units", "crash_location_map"]
     views = ["crashes"]
     materialized_views = ["road_types", "unit_types"]
 
@@ -526,7 +526,7 @@ def create_unifying_fact_views(db):
         ');
         """,
         """
-        select create_immv('crash_location_map_immv', '
+        select create_immv('crash_location_map', '
         SELECT
             cris_facts.crashes.crash_id AS crash_id,
             atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
@@ -549,15 +549,15 @@ def create_unifying_fact_views(db):
             COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
             COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
             COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
-            crash_location_map_immv.location_polygon_hex_id,
+            crash_location_map.location_polygon_hex_id,
             array_agg(distinct public.units.unit_type_id) as units_unit_type_ids
         from cris_facts.crashes
         JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
-        left join crash_location_map_immv on (cris_facts.crashes.crash_id = crash_location_map_immv.crash_id)
+        left join crash_location_map on (cris_facts.crashes.crash_id = crash_location_map.crash_id)
         join public.units on (cris_facts.crashes.crash_id = public.units.crash_id)
         group by cris_facts.crashes.id,
                  visionzero_facts.crashes.id,
-                 crash_location_map_immv.location_polygon_hex_id
+                 crash_location_map.location_polygon_hex_id
         );
         """,
     ]
