@@ -1,3 +1,5 @@
 psycopg2-binary
 lorem_text
 tabulate
+pygments
+sqlparse
