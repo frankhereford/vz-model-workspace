@@ -1,8 +1,7 @@
 -- merge together non-edit and edit columns and return the edited values if they exist
 CREATE OR REPLACE FUNCTION cris.generate_cris_and_edits_query()
 RETURNS SETOF cris.crash_cris_data
-LANGUAGE plpgsql
-AS $function$
+AS $$
 DECLARE
     editable_columns text[];
     non_edit_columns text;
@@ -37,8 +36,12 @@ BEGIN
             table_schema = 'cris'
             AND table_name = 'crash_edit_data';
 END;
-$function$
+$$ LANGUAGE PLPGSQL;
+
+COMMENT ON FUNCTION cris.generate_cris_and_edits_query IS 'Find non-editable columns, coalesce edited and CRIS values, and return a crash query';
 
 CREATE OR REPLACE VIEW cris.crashes AS
-SELECT * FROM cris.generate_crash_edits_query() as crash_edits
-LEFT JOIN cris.crash_computed_data ON cris.crash_computed_data.crash_id = crash_edits.crash_id;
+SELECT * FROM cris.generate_cris_and_edits_query() as crash_edits
+LEFT JOIN cris.crash_computed_data using ("crash_id");
+
+COMMENT ON VIEW CRIS.CRASHES IS 'Merge together coalesced edit/cris columns and computed columns';
