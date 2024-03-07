@@ -124,7 +124,6 @@ def main():
             query_a_single_crash_for_truth(db, crash_id)
             # if STEP:
             #     input("Press Enter to continue...")
-        print(f"{colors.RED}\nFinished updating the column and querying the crash record.{colors.ENDC}\n")
 
         print(f"{colors.RED}\nQuerying the crash history for crash_id {crash_id} and column {new_column}.{colors.ENDC}\n")
         query_a_single_crash_history(db, crash_id, new_column)

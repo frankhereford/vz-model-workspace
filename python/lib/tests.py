@@ -352,7 +352,22 @@ def query_worst_locations(db):
 
 
 def add_editable_column_to_crashes_table(db):
-    new_column = lorem.words(1)
+
+    while True:
+        new_column = lorem.words(1)
+
+        # Check if the new column already exists in cris_facts.crashes
+        check_column_sql = f"SELECT column_name FROM information_schema.columns WHERE table_name = 'crashes' AND table_schema = 'cris_facts' AND column_name = '{new_column}';"
+        sql_print(check_column_sql)
+
+        with db.cursor() as cursor:
+            cursor.execute(check_column_sql)
+            column_exists = cursor.fetchone()
+
+        if not column_exists:
+            break
+
+    # new_column = lorem.words(1)
 
     # Add new column to the tables
     sql_commands = [
@@ -455,7 +470,7 @@ def query_a_single_crash_history(db, crash_id, new_column):
             FROM cris_facts.crashes_history
             WHERE cris_facts.crashes_history.crash_id = %s
         )
-        SELECT crash_id, validity_end, 'cris' AS source, {new_column} AS {new_column}
+        SELECT crash_id, validity_end, 'cris' AS source, {new_column} 
         FROM cris_facts.crashes_history
         WHERE crash_id = %s
         UNION
@@ -473,7 +488,5 @@ def query_a_single_crash_history(db, crash_id, new_column):
     )
 
     params = (crash_id, crash_id)
-
-    sql_print(sql % params)
 
     print_table_from_sql(db, sql, params)
