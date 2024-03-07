@@ -8,6 +8,7 @@ CREATE TABLE cris.crash_cris_data (
     "latitude" float8,
     "longitude" float8,
     "primary_address" text,
+    "non_editable_field" text,
     PRIMARY KEY ("crash_id")
 );
 
