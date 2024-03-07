@@ -34,8 +34,6 @@ def main():
 
     db = get_db_handle()
 
-    # todo - add maintenance functions to VZ side, so you can insert on it as well and get the empty cris record
-
     # fmt: off
     if BUILD is True:
         disconnect_other_users(db)
@@ -83,8 +81,14 @@ def main():
         print(f"{colors.RED}As a VZ user, updated crash_id {crash_id} to use the new road_type_id {new_road_type_id}.{colors.ENDC}\n")
         # input()
 
-        # query_a_single_crash_for_truth(db, crash_id)
-        # query_all_crashes_for_truth_and_print_ten_of_them(db)
+        print(f"{colors.RED}\nQuery a single record for the current state of truth.{colors.ENDC}\n")
+        query_a_single_crash_for_truth(db, crash_id)
+
+        print(f"{colors.RED}\nQuery the truth for /all/ records and select 10 to print at random.{colors.ENDC}\n")
+        query_all_crashes_for_truth_and_print_ten_of_them(db)
+
+        print(f"{colors.RED}\nDemonstrate aggregate queries on locations. Top locations in terms of units-in-crashes desc, crashes desc.{colors.ENDC}\n")
+        query_worst_locations(db)
 
 
 if __name__ == "__main__":

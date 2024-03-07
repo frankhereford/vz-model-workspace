@@ -547,7 +547,7 @@ def create_unifying_fact_views(db):
             COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
             COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
             crash_location_map_immv.location_polygon_hex_id,
-            array_agg(distinct public.units.unit_type_id)
+            array_agg(distinct public.units.unit_type_id) as units_unit_type_ids
         from cris_facts.crashes
         JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
         left join crash_location_map_immv on (cris_facts.crashes.crash_id = crash_location_map_immv.crash_id)

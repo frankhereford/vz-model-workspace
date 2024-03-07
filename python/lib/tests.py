@@ -305,7 +305,7 @@ def print_table_from_sql(db, sql, params):
             # Format the records using tabulate
             table = tabulate(records_values, headers=column_names, tablefmt="grid")
 
-            print(sql % params)
+            sql_print(sql % params)
             print(table)
         else:
             print(f"No record found with parameters: {params}")
@@ -323,6 +323,30 @@ def query_all_crashes_for_truth_and_print_ten_of_them(db):
     )
     SELECT * FROM all_crashes
     ORDER BY RANDOM()
+    LIMIT 10;
+    """
+    print_table_from_sql(db, sql, ())
+
+
+def query_worst_locations(db):
+    sql = """
+    SELECT
+        atd_txdot_locations.location_id,
+        COUNT(DISTINCT crash_location_map_immv.crash_id) AS crash_count,
+        COUNT(units.unit_id) AS unit_count
+    FROM
+        atd_txdot_locations
+    LEFT JOIN
+        crash_location_map_immv ON (atd_txdot_locations.location_id = crash_location_map_immv.location_polygon_hex_id)
+    JOIN
+        units ON (crash_location_map_immv.crash_id = units.crash_id)
+    WHERE
+        atd_txdot_locations.location_group = 1
+    GROUP BY
+        atd_txdot_locations.location_id
+    ORDER BY
+        COUNT(units.unit_id) DESC,
+        COUNT(DISTINCT crash_location_map_immv.crash_id) DESC
     LIMIT 10;
     """
     print_table_from_sql(db, sql, ())
