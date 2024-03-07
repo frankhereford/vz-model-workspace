@@ -4,6 +4,7 @@ import argparse
 from lib.database import *
 from lib.tests import *
 from lib.colors import colors
+import random
 
 
 def main():
@@ -92,6 +93,18 @@ def main():
 
         print(f"{colors.RED}\nAdd an editable column to the crashes table.{colors.ENDC}\n")
         new_column = add_editable_column_to_crashes_table(db)
+
+        print(f"{colors.RED}\nStarting a loop to update the new column with random values and query the crash record.{colors.ENDC}\n")
+        for _ in range(20):
+            entity = 'cris' if random.random() < 0.5 else 'visionzero'
+            print(f"{colors.RED}Updating column {new_column} with a random value as {entity} for crash_id {crash_id}.{colors.ENDC}")
+            update_column_with_random_value(db, crash_id, new_column, entity)
+            print(f"{colors.RED}Querying the crash record after the update.{colors.ENDC}")
+            query_a_single_crash_for_truth(db, crash_id)
+        print(f"{colors.RED}\nFinished updating the column and querying the crash record.{colors.ENDC}\n")
+
+        print(f"{colors.RED}\nQuerying the crash history for crash_id {crash_id} and column {new_column}.{colors.ENDC}\n")
+        query_a_single_crash_history(db, crash_id, new_column)
 
 
 if __name__ == "__main__":
