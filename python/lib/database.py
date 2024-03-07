@@ -77,11 +77,6 @@ def drop_public_entities(db):
     materialized_views = ["road_types", "unit_types"]
 
     with db.cursor() as cursor:
-        for table in tables:
-            sql = f"DROP TABLE IF EXISTS public.{table};"
-            sql_print(sql)
-            cursor.execute(sql)
-
         for view in views:
             sql = f"DROP VIEW IF EXISTS public.{view};"
             sql_print(sql)
@@ -89,6 +84,11 @@ def drop_public_entities(db):
 
         for materialized_view in materialized_views:
             sql = f"DROP MATERIALIZED VIEW IF EXISTS public.{materialized_view};"
+            sql_print(sql)
+            cursor.execute(sql)
+
+        for table in tables:
+            sql = f"DROP TABLE IF EXISTS public.{table};"
             sql_print(sql)
             cursor.execute(sql)
 
@@ -509,7 +509,8 @@ def populate_fact_tables(db, BE_QUICK_ABOUT_IT=True, batch_size=100000):
 
 def create_unifying_fact_views(db):
     sql_commands = [
-        """select create_immv('units', '
+        """
+        select create_immv('units', '
         SELECT
             cris_facts.units.id AS cris_unit_fact_id,
             visionzero_facts.units.id AS visionzero_unit_fact_id,
@@ -524,7 +525,8 @@ def create_unifying_fact_views(db):
             cris_facts.units.id = visionzero_facts.units.cris_id
         ');
         """,
-        """select create_immv('crash_location_map_immv', '
+        """
+        select create_immv('crash_location_map_immv', '
         SELECT
             cris_facts.crashes.crash_id AS crash_id,
             atd_txdot_locations.polygon_hex_id as location_polygon_hex_id
@@ -538,7 +540,8 @@ def create_unifying_fact_views(db):
         )
         ');
         """,
-        """create view public.crashes as (
+        """
+        create view public.crashes as (
         SELECT
             cris_facts.crashes.id AS cris_crash_fact_id,
             visionzero_facts.crashes.id AS visionzero_crash_fact_id,

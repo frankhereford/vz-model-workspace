@@ -91,5 +91,9 @@ def main():
         query_worst_locations(db)
 
 
+        print(f"{colors.RED}\nAdd an editable column to the crashes table.{colors.ENDC}\n")
+        add_editable_column_to_crashes_table(db)
+
+
 if __name__ == "__main__":
     main()

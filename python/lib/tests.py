@@ -350,3 +350,53 @@ def query_worst_locations(db):
     LIMIT 10;
     """
     print_table_from_sql(db, sql, ())
+
+
+def add_editable_column_to_crashes_table(db):
+    new_column = lorem_word = lorem.words(1)
+
+    sql_commands = [
+        """
+        DROP VIEW IF EXISTS public.crashes;
+        """,
+        f"""
+        ALTER TABLE cris_facts.crashes ADD COLUMN {new_column} text;
+        """,
+        f"""
+        ALTER TABLE cris_facts.crashes_history ADD COLUMN {new_column} text;
+        """,
+        f"""
+        ALTER TABLE visionzero_facts.crashes ADD COLUMN {new_column} text;
+        """,
+        f"""
+        ALTER TABLE visionzero_facts.crashes_history ADD COLUMN {new_column} text;
+        """,
+        f"""
+        CREATE VIEW public.crashes AS (
+            SELECT
+                cris_facts.crashes.id AS cris_crash_fact_id,
+                visionzero_facts.crashes.id AS visionzero_crash_fact_id,
+                cris_facts.crashes.crash_id AS crash_id,
+                COALESCE(visionzero_facts.crashes.primary_address, cris_facts.crashes.primary_address) AS primary_address,
+                COALESCE(visionzero_facts.crashes.road_type_id, cris_facts.crashes.road_type_id) AS road_type_id,
+                COALESCE(visionzero_facts.crashes.location, cris_facts.crashes.location) AS location,
+                COALESCE(visionzero_facts.crashes.{new_column}, cris_facts.crashes.{new_column}) AS {new_column},
+                crash_location_map_immv.location_polygon_hex_id,
+                array_agg(distinct public.units.unit_type_id) as units_unit_type_ids
+            FROM cris_facts.crashes
+            JOIN visionzero_facts.crashes ON cris_facts.crashes.id = visionzero_facts.crashes.cris_id
+            LEFT JOIN crash_location_map_immv ON (cris_facts.crashes.crash_id = crash_location_map_immv.crash_id)
+            JOIN public.units ON (cris_facts.crashes.crash_id = public.units.crash_id)
+            GROUP BY cris_facts.crashes.id,
+                     visionzero_facts.crashes.id,
+                     crash_location_map_immv.location_polygon_hex_id
+        );
+        """,
+    ]
+
+    for sql in sql_commands:
+        sql_print(sql)
+        with db.cursor() as cursor:
+            cursor.execute(sql)
+
+    db.commit()
