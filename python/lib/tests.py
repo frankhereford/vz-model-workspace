@@ -1,7 +1,5 @@
 import random
-import string
 from lorem_text import lorem
-import psycopg2
 from psycopg2.extras import RealDictCursor
 from tabulate import tabulate
 from lib.sqlprettyprint import sql_print
@@ -307,6 +305,7 @@ def print_table_from_sql(db, sql, params):
 
             sql_print(sql % params)
             print(table)
+            print()
         else:
             print(f"No record found with parameters: {params}")
 
@@ -332,21 +331,21 @@ def query_worst_locations(db):
     sql = """
     SELECT
         atd_txdot_locations.location_id,
-        COUNT(DISTINCT crash_location_map_immv.crash_id) AS crash_count,
+        COUNT(DISTINCT crash_location_map.crash_id) AS crash_count,
         COUNT(units.unit_id) AS unit_count
     FROM
         atd_txdot_locations
     LEFT JOIN
-        crash_location_map_immv ON (atd_txdot_locations.location_id = crash_location_map_immv.location_polygon_hex_id)
+        crash_location_map ON (atd_txdot_locations.location_id = crash_location_map.location_polygon_hex_id)
     JOIN
-        units ON (crash_location_map_immv.crash_id = units.crash_id)
+        units ON (crash_location_map.crash_id = units.crash_id)
     WHERE
         atd_txdot_locations.location_group = 1
     GROUP BY
         atd_txdot_locations.location_id
     ORDER BY
         COUNT(units.unit_id) DESC,
-        COUNT(DISTINCT crash_location_map_immv.crash_id) DESC
+        COUNT(DISTINCT crash_location_map.crash_id) DESC
     LIMIT 10;
     """
     print_table_from_sql(db, sql, ())
@@ -393,3 +392,88 @@ def add_editable_column_to_crashes_table(db):
     db.commit()
 
     return new_column
+
+
+def query_a_single_crash_and_children_for_truth(db, crash_id):
+    sql = "SELECT * FROM crashes WHERE crash_id = %s;"
+    print_table_from_sql(db, sql, (crash_id,))
+    sql = "SELECT * FROM units WHERE crash_id = %s;"
+    print_table_from_sql(db, sql, (crash_id,))
+
+
+def update_column_with_random_value(db, crash_id, new_column, entity):
+    # Generate a random value (a single word of Lorem Ipsum)
+    random_value = lorem.words(1)
+
+    if entity == "cris":
+        # Get the cris_crash_fact_id
+        sql = "SELECT cris_crash_fact_id FROM public.crashes WHERE crash_id = %s;"
+        with db.cursor() as cursor:
+            cursor.execute(sql, (crash_id,))
+            cris_crash_fact_id = cursor.fetchone()["cris_crash_fact_id"]
+
+        # Update the crash record in cris_facts.crashes
+        sql = f"UPDATE cris_facts.crashes SET {new_column} = %s WHERE id = %s RETURNING {new_column};"
+        with db.cursor() as cursor:
+            cursor.execute(sql, (random_value, cris_crash_fact_id))
+            updated_value = cursor.fetchone()[new_column]
+            sql_print(
+                sql % (f"'{random_value}'", cris_crash_fact_id)
+                + f" --> {updated_value}"
+            )
+
+    elif entity == "visionzero":
+        # Get the visionzero_crash_fact_id
+        sql = "SELECT visionzero_crash_fact_id FROM public.crashes WHERE crash_id = %s;"
+        with db.cursor() as cursor:
+            cursor.execute(sql, (crash_id,))
+            visionzero_crash_fact_id = cursor.fetchone()["visionzero_crash_fact_id"]
+
+        # Update the crash record in visionzero_facts.crashes
+        sql = f"UPDATE visionzero_facts.crashes SET {new_column} = %s WHERE id = %s RETURNING {new_column};"
+        with db.cursor() as cursor:
+            cursor.execute(sql, (random_value, visionzero_crash_fact_id))
+            updated_value = cursor.fetchone()[new_column]
+            sql_print(
+                sql % (f"'{random_value}'", visionzero_crash_fact_id)
+                + f" --> {updated_value}"
+            )
+
+    else:
+        raise ValueError(f"Invalid entity: {entity}. Must be 'cris' or 'visionzero'.")
+
+    db.commit()
+
+    return random_value
+
+
+def query_a_single_crash_history(db, crash_id, new_column):
+    sql = """
+    with changes as (
+        WITH cris_id AS (
+            SELECT DISTINCT id AS cris_id
+            FROM cris_facts.crashes_history
+            WHERE cris_facts.crashes_history.crash_id = %s
+        )
+        SELECT crash_id, validity_end, 'cris' AS source, {new_column} AS {new_column}
+        FROM cris_facts.crashes_history
+        WHERE crash_id = %s
+        UNION
+        SELECT id AS crash_id, validity_end, 'visionzero' AS source, {new_column}
+        FROM visionzero_facts.crashes_history
+        JOIN cris_id ON true
+        WHERE visionzero_facts.crashes_history.cris_id = cris_id.cris_id
+    )
+    select *
+    from changes
+    where {new_column} is not null
+    order by validity_end asc;
+    """.format(
+        new_column=new_column
+    )
+
+    params = (crash_id, crash_id)
+
+    sql_print(sql % params)
+
+    print_table_from_sql(db, sql, params)
