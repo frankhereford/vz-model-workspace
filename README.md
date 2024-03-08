@@ -57,3 +57,7 @@ python seed.py -l 50000
 ```
 6. You can check out the changes applied to the DB by exploring `/python/migrations/`
 7. Run through the test cases using copy/paste from the files in `/python/test_cases/`
+
+## Diagram
+
+![Crash Example Diagram](./md-prototype.png)
