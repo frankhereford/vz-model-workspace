@@ -6,7 +6,7 @@ import argparse
 import csv
 import time
 
-import psycopg2
+import psycopg
 from psycopg2 import sql
 
 DBNAME = "visionzero"
@@ -16,28 +16,31 @@ HOST = "db"
 PORT = "5432"
 
 
-def seed(path, table, limit):
+def seed(path, table, limit=None, batch=False):
     print(f"Seeding {table} from {path}...")
 
-    conn = psycopg2.connect(
+    conn = psycopg.connect(
         dbname=DBNAME, user=USER, password=PASSWORD, host=HOST, port=PORT
     )
     cur = conn.cursor()
 
     with open(path, "r") as csv_file:
-        records = csv.DictReader(csv_file)
-        headers = records.fieldnames
+        records = csv.reader(csv_file)
+        headers = next(records)
 
-    copy = sql.SQL(
-        """COPY {}({})
-    FROM '{}'
-    DELIMITER ','
-    CSV HEADER;"""
-    ).format(
-        sql.SQL(table), sql.SQL(", ").join(map(sql.Identifier, headers)), sql.SQL(path)
-    )
-
-    cur.execute(copy.as_string(conn))
+        with cur.copy(
+            "COPY {} ({}) FROM STDIN".format(table, ",".join(headers))
+        ) as copy:
+            count = 0
+            for record in records:
+                # Replace empty strings with None or else location table errors out
+                record = [None if x == "" else x for x in record]
+                copy.write_row(record)
+                count += 1
+                if count % 1000 == 0:
+                    print(f"{count} records seeded")
+                if count == limit:
+                    break
 
     conn.commit()
     conn.close()
@@ -47,24 +50,28 @@ def main(args):
     start = time.time()
     limit = args.limit
 
-    seed(path="/application/csv/locations.csv", table="cris.locations", limit=limit)
+    seed(
+        path="/application/csv/locations.csv",
+        table="cris.locations",
+        limit=None,
+    )
     seed(
         path="/application/csv/unit_types.csv",
         table="cris.unit_types_lookup",
-        limit=limit,
+        limit=None,
     )
     seed(
         path="/application/csv/road_types.csv",
         table="cris.road_types_lookup",
-        limit=limit,
+        limit=None,
     )
     seed(
-        path="/application/csv/crashes-short.csv",
+        path="/application/csv/crashes.csv",
         table="cris.crash_cris_data",
         limit=limit,
     )
     seed(
-        path="/application/csv/units-short.csv",
+        path="/application/csv/units.csv",
         table="cris.unit_cris_data",
         limit=limit,
     )
