@@ -1,6 +1,7 @@
 import csv
 import psycopg2
 import subprocess
+import time
 from psycopg2.extras import RealDictCursor
 from lib.sqlprettyprint import sql_print, bash_print
 
@@ -562,12 +563,12 @@ def create_unifying_fact_views(db):
         """,
     ]
 
-    with db.cursor() as cursor:
-        for sql in sql_commands:
+    for sql in sql_commands:
+        time.sleep(5)
+        with db.cursor() as cursor:
             sql_print(sql)
             cursor.execute(sql)
-
-    db.commit()
+            db.commit()
 
 
 def create_temporal_tracking(db):
