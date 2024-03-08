@@ -22,11 +22,17 @@ docker compose run python
 ### Rebuilding / Building the DB
 
 ```bash
-./model.py -m build # full seed file building; ~ 8-10 minutes
-./model.py -m build --quick # only do 100K inserts from each seed file, so this is a ~ 2m build time
+./model.py --mode build # full seed file building; ~ 8-10 minutes
+./model.py --mode build --quick # only do 100K inserts from each seed file, so this is a ~ 2m build time
 ```
 The program build and test processes are both imdempotent, so you can just run the build process on top of a built database, and it'll clean up everything it needs to do rebuild.
   * See the note above about the hangup in the `create_immv` function. 
+
+### Running the test steps
+
+```bash
+./model.py --mode test # run all of them without pausing between them
+./model.py --mode test --step # stop and wait for user input between them
 
 ### Running the test steps
 
