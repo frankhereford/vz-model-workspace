@@ -7,7 +7,6 @@ DECLARE
     edited_latitude float;
     edited_longitude float;
 BEGIN
-    RAISE NOTICE 'Checking if latitude and longitude have been edited for crash_id: %', NEW.crash_id;
     -- Determine if the crash latitude and longitude have been edited
     IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'crash_cris_data' THEN
         SELECT latitude, longitude INTO edited_latitude, edited_longitude FROM cris.crash_edit_data WHERE crash_id = NEW.crash_id;
@@ -20,8 +19,6 @@ BEGIN
     IF NEW.latitude IS NULL OR NEW.longitude IS NULL THEN
             RETURN NEW;
     END IF;
-
-    RAISE NOTICE 'Calculating location from latitude and longitude for crash_id: %', NEW.crash_id;
 
     updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
 

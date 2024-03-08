@@ -1,4 +1,6 @@
 -- CRIS user creates a crash record with two unit records 
+
+-- Adjust crash_id and unit_id to avoid conflicts with existing data if needed
 INSERT INTO cris.crash_cris_data (
     "crash_id",
     "latitude",
@@ -14,3 +16,5 @@ INSERT INTO cris.unit_cris_data ("unit_id", "crash_id", "unit_type_id") VALUES
 
 INSERT INTO cris.unit_cris_data ("unit_id", "crash_id", "unit_type_id") VALUES
 (2002, 1001, 2);
+
+-- Check cris.crashes and unique_unit_types should be {2,4} for crash_id 1001

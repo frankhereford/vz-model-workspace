@@ -41,13 +41,8 @@ BEGIN
     -- return query to get edited values of columns if they exist or non-edited values if they don't for editable columns
     -- this joins the values of non-editable columns so we have a complete unit row
 	RETURN QUERY EXECUTE
-        format('select %s, %s from cris.unit_cris_data LEFT JOIN cris.unit_edit_data ON cris.unit_cris_data.unit_id = cris.unit_edit_data.unit_id', 
-        string_agg(format('coalesce(cris.unit_edit_data.%s, cris.unit_cris_data.%s) as %s', column_name, column_name, column_name), ','), non_edit_columns) edit_query
-        FROM
-            information_schema.columns
-        WHERE
-            table_schema = 'cris'
-            AND table_name = 'unit_edit_data';
+        format('select %s from cris.unit_cris_data LEFT JOIN cris.unit_edit_data ON cris.unit_cris_data.unit_id = cris.unit_edit_data.unit_id', 
+        array_to_string(query_columns, ','));
 END;
 $$ LANGUAGE PLPGSQL;
 
