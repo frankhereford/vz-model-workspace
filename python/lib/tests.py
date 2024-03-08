@@ -313,6 +313,8 @@ def print_table_from_sql(db, sql, params):
 def query_a_single_crash_for_truth(db, crash_id):
     sql = "SELECT * FROM public.crashes WHERE crash_id = %s;"
     print_table_from_sql(db, sql, (crash_id,))
+    sql = "select * from public.units where crash_id = %s;"
+    print_table_from_sql(db, sql, (crash_id,))
 
 
 def query_all_crashes_for_truth_and_print_ten_of_them(db):
@@ -397,7 +399,7 @@ def add_editable_column_to_crashes_table(db):
 
     # Recreate the view with the new definition
     drop_view_sql = f"DROP VIEW IF EXISTS public.crashes;"
-    create_view_sql = f"CREATE VIEW public.crashes AS {view_def};"
+    create_view_sql = f"CREATE VIEW public.crashes AS {view_def}"
     sql_print(drop_view_sql)
     sql_print(create_view_sql)
     with db.cursor() as cursor:

@@ -67,32 +67,38 @@ def main():
         crash_id, unit_ids = cris_user_creates_crash_record_with_two_unit_records(db)
         print(f"{colors.RED}Created crash_id as a CRIS user, {crash_id}, with unit_ids: {unit_ids}{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         new_location, new_polygon_value = vz_user_changes_a_crash_location(db, crash_id)
         print(f"{colors.RED}As a VZ user, changed crash_id {crash_id} to new location as a VZ user: {new_location} which places it in {new_polygon_value}.{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         unit_id, initial_user_type, changed_unit_type = vz_user_changes_a_unit_type(db, crash_id)
         print(f"{colors.RED}As a VZ user, changed unit_type_id {initial_user_type} to {changed_unit_type} for crash_id {crash_id}, unit_id {unit_id}.{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         updated_crash_id, centroid_wkt, road_type_id, new_polygon_value = cris_user_update_crash_location_and_road_type(db, crash_id)
         print(f"{colors.RED}As a CRIS user, updated crash_id {crash_id} to new location {centroid_wkt} and road_type_id {road_type_id}, and it remains in {new_polygon_value}.{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         unit_id_cris_space, initial_unit_type_id, updated_unit_type_id = cris_user_changes_a_unit_type(db, crash_id)
         print(f"{colors.RED}As a CRIS user, changed unit_type_id {initial_unit_type_id} to {updated_unit_type_id} for crash_id {crash_id}, unit_id {unit_id_cris_space}.{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         inserted_id, lorem_word, new_road_type_id = vz_user_creates_custom_lookup_value_and_uses_it(db, crash_id)
         print(f"{colors.RED}As a VZ user, inserted a new lookup value with id {inserted_id} and value '{lorem_word}'.{colors.ENDC}\n")
         print(f"{colors.RED}As a VZ user, updated crash_id {crash_id} to use the new road_type_id {new_road_type_id}.{colors.ENDC}\n")
         if STEP:
+            query_a_single_crash_for_truth(db, crash_id)
             input("Press Enter to continue...")
 
         print(f"{colors.RED}\nQuery a single record for the current state of truth.{colors.ENDC}\n")
