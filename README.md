@@ -43,16 +43,17 @@ docker compose up -d db
 docker compose run python
 ```
 2. Now, you can connect to the DB with you DB GUI as described above.
-3. Run all up migrations on the DB. You can also migrate down if needed. Explore the `cris` schema.
+3. Move your seed .csv files into `/python/csv/`. You may need to update the filenames in `migrate.py` if you changed them.
+4. Run all up migrations on the DB. You can also migrate down if needed. Explore the `cris` schema.
 ```bash
 python migrate.py -d up
 ```
 ```bash
 python migrate.py -d down
 ```
-3. Run the seed script with a limit. Finding a fast way to seed crashes has been a challenge for me.
+5. Run the seed script with a limit. Finding a fast way to seed crashes has been a challenge for me.
 ```bash
 python seed.py -l 50000
 ```
-4. You can check out the changes applied to the DB by exploring `/python/migrations/`
-5. Run through the test cases using copy/paste from the files in `/python/test_cases/`
+6. You can check out the changes applied to the DB by exploring `/python/migrations/`
+7. Run through the test cases using copy/paste from the files in `/python/test_cases/`
