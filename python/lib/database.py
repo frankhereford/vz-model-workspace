@@ -571,6 +571,20 @@ def create_unifying_fact_views(db):
             db.commit()
 
 
+def add_indexes_to_immv_between_crashes_and_locations(db):
+    sql = [
+        "CREATE INDEX idx_crash_location_map_crash_id ON public.crash_location_map (crash_id);",
+        "CREATE INDEX idx_crash_location_map_hex_id ON public.crash_location_map (location_polygon_hex_id);",
+    ]
+
+    with db.cursor() as cursor:
+        for sql in sql:
+            sql_print(sql)
+            cursor.execute(sql)
+
+    db.commit()
+
+
 def create_temporal_tracking(db):
     tables = [
         "cris_facts.crashes",

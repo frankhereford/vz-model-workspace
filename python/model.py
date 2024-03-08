@@ -62,6 +62,7 @@ def main():
         create_lookup_table_substitution_triggers(db)
         populate_fact_tables(db, BE_QUICK_ABOUT_IT, batch_size=BATCH_SIZE)
         create_unifying_fact_views(db)
+        add_indexes_to_immv_between_crashes_and_locations(db)
 
     if TEST is True:
         crash_id, unit_ids = cris_user_creates_crash_record_with_two_unit_records(db)
