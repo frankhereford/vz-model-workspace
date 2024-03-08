@@ -7,27 +7,30 @@ DECLARE
     edited_latitude float;
     edited_longitude float;
 BEGIN
+    RAISE NOTICE 'Checking if latitude and longitude have been edited for crash_id: %', NEW.crash_id;
     -- Determine if the crash latitude and longitude have been edited
-    -- TODO: Handle when crash_edit_data is updated with NULL latitude and longitude
     IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'crash_cris_data' THEN
         SELECT latitude, longitude INTO edited_latitude, edited_longitude FROM cris.crash_edit_data WHERE crash_id = NEW.crash_id;
 
         IF edited_latitude IS NOT NULL AND edited_longitude IS NOT NULL THEN
             RETURN NEW;
-        ELSE
-            -- We need to update the position with new CRIS data
-            updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
         END IF;
-    ELSE
-        updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
     END IF;
+
+    IF NEW.latitude IS NULL OR NEW.longitude IS NULL THEN
+            RETURN NEW;
+    END IF;
+
+    RAISE NOTICE 'Calculating location from latitude and longitude for crash_id: %', NEW.crash_id;
+
+    updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
 
     updated_location_id = (
                     SELECT location_id 
                     FROM cris.locations 
                     WHERE (geometry && updated_position)
                     AND ST_Contains(geometry, updated_position)
-                    LIMIT 1 --TODO: This should be temporary until we get our polygons in order
+                    LIMIT 1
                 );
    
    UPDATE cris.crash_computed_data
@@ -48,7 +51,7 @@ COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Crea
 
 CREATE OR REPLACE TRIGGER CRASH_UPDATE_B_CRIS_LOCATION
 AFTER UPDATE ON CRIS.CRASH_CRIS_DATA
-FOR EACH ROW EXECUTE FUNCTION cris.crash_create_location();
+FOR EACH ROW WHEN (NEW.latitude <> OLD.latitude AND NEW.longitude <> OLD.longitude) EXECUTE FUNCTION cris.crash_create_location();
 
 COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Create location from latitude and longitude on insert';
 

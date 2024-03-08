@@ -18,7 +18,7 @@ BEGIN
         table_schema = 'cris'
         AND table_name = 'crash_edit_data';
 
-    -- get cris columns
+    -- get all cris columns
     SELECT array_agg(column_name)
     INTO cris_columns
     FROM
@@ -47,7 +47,7 @@ $$ LANGUAGE PLPGSQL;
 
 COMMENT ON FUNCTION cris.generate_crash_cris_and_edits_query IS 'Find non-editable columns, coalesce edited and CRIS values, and return a crash query';
 
--- View to merge together results of coallesced edits, CRIS data, and computed data
+-- View to merge together results of coalesced edits, CRIS data, and computed data
 CREATE OR REPLACE VIEW cris.crashes AS
 SELECT * FROM cris.generate_crash_cris_and_edits_query()
 LEFT JOIN cris.crash_computed_data using ("crash_id");
