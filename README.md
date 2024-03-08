@@ -25,7 +25,7 @@ docker compose run python
 ./model.py --mode build # full seed file building; ~ 8-10 minutes
 ./model.py --mode build --quick # only do 100K inserts from each seed file, so this is a ~ 2m build time
 ```
-The program build and test processes are both imdempotent, so you can just run the build process on top of a built database, and it'll clean up everything it needs to do rebuild.
+The program build and test processes are both idempotent, so you can just run the build process on top of a built database, and it'll clean up everything it needs to do a rebuild.
   * See the note above about the hangup in the `create_immv` function. 
 
 ### Running the test steps
