@@ -42,7 +42,8 @@ docker compose run python
 docker compose up -d db
 docker compose run python
 ```
-2. Run all up migrations on the DB. You can also migrate down if needed.
+2. Now, you can connect to the DB with you DB GUI as described above.
+3. Run all up migrations on the DB. You can also migrate down if needed. Explore the `cris` schema.
 ```bash
 python migrate.py -d up
 ```

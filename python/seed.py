@@ -7,7 +7,7 @@ import csv
 import time
 
 import psycopg
-from psycopg2 import sql
+from psycopg import sql
 
 DBNAME = "visionzero"
 USER = "vz"
