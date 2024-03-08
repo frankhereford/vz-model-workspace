@@ -2,13 +2,12 @@
 """
 Seed VZ Data Model DB with data from CSV files
 """
+import argparse
 import csv
 import time
+
 import psycopg2
 from psycopg2 import sql
-import psycopg2.extras as extras
-import pandas as pd
-from io import StringIO
 
 DBNAME = "visionzero"
 USER = "vz"
@@ -17,7 +16,7 @@ HOST = "db"
 PORT = "5432"
 
 
-def seed(path, table):
+def seed(path, table, limit):
     print(f"Seeding {table} from {path}...")
 
     conn = psycopg2.connect(
@@ -44,14 +43,31 @@ def seed(path, table):
     conn.close()
 
 
-def main():
+def main(args):
     start = time.time()
+    limit = args.limit
 
-    seed(path="/application/csv/locations.csv", table="cris.locations")
-    seed(path="/application/csv/unit_types.csv", table="cris.unit_types_lookup")
-    seed(path="/application/csv/road_types.csv", table="cris.road_types_lookup")
-    seed(path="/application/csv/crashes-short.csv", table="cris.crash_cris_data")
-    seed(path="/application/csv/units.csv", table="cris.unit_cris_data")
+    seed(path="/application/csv/locations.csv", table="cris.locations", limit=limit)
+    seed(
+        path="/application/csv/unit_types.csv",
+        table="cris.unit_types_lookup",
+        limit=limit,
+    )
+    seed(
+        path="/application/csv/road_types.csv",
+        table="cris.road_types_lookup",
+        limit=limit,
+    )
+    seed(
+        path="/application/csv/crashes-short.csv",
+        table="cris.crash_cris_data",
+        limit=limit,
+    )
+    seed(
+        path="/application/csv/units-short.csv",
+        table="cris.unit_cris_data",
+        limit=limit,
+    )
 
     end = time.time()
     elapsed_minutes = (end - start) / 60
@@ -60,4 +76,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-l", "--limit", type=int, help="limit the number of records to seed"
+    )
+    args = parser.parse_args()
+
+    main(args)

@@ -1,8 +1,9 @@
 -- Unit CRIS Table Definition
+-- Because the way that the units view is created, non-editable columns must follow editable columns in the table definition
 CREATE TABLE cris.unit_cris_data (
     unit_id int4 NOT NULL,
-    crash_id int4 NOT NULL,
     unit_type_id int4,
+    crash_id int4 NOT NULL,
     PRIMARY KEY (unit_id)
 );
 

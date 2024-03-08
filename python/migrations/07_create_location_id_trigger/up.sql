@@ -4,9 +4,25 @@ RETURNS TRIGGER AS $$
 DECLARE
     updated_location_id varchar;
     updated_position geometry(Geometry,4326);
+    edited_latitude float;
+    edited_longitude float;
 BEGIN
-   updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
-   updated_location_id = (
+    -- Determine if the crash latitude and longitude have been edited
+    -- TODO: Handle when crash_edit_data is updated with NULL latitude and longitude
+    IF TG_OP = 'UPDATE' AND TG_TABLE_NAME = 'crash_cris_data' THEN
+        SELECT latitude, longitude INTO edited_latitude, edited_longitude FROM cris.crash_edit_data WHERE crash_id = NEW.crash_id;
+
+        IF edited_latitude IS NOT NULL AND edited_longitude IS NOT NULL THEN
+            RETURN NEW;
+        ELSE
+            -- We need to update the position with new CRIS data
+            updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
+        END IF;
+    ELSE
+        updated_position = ST_SetSRID(ST_Point(NEW.longitude, NEW.latitude), 4326);
+    END IF;
+
+    updated_location_id = (
                     SELECT location_id 
                     FROM cris.locations 
                     WHERE (geometry && updated_position)
@@ -26,6 +42,12 @@ COMMENT ON FUNCTION cris.crash_create_location IS 'Calculate location from latit
 
 CREATE OR REPLACE TRIGGER CRASH_CREATE_B_CRIS_LOCATION
 AFTER INSERT ON CRIS.CRASH_CRIS_DATA
+FOR EACH ROW EXECUTE FUNCTION cris.crash_create_location();
+
+COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Create location from latitude and longitude on insert';
+
+CREATE OR REPLACE TRIGGER CRASH_UPDATE_B_CRIS_LOCATION
+AFTER UPDATE ON CRIS.CRASH_CRIS_DATA
 FOR EACH ROW EXECUTE FUNCTION cris.crash_create_location();
 
 COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Create location from latitude and longitude on insert';
