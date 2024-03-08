@@ -10,7 +10,7 @@
 docker compose down -v # v for volumes
 ```
 * If you see `! Network vz-model-workspace_default  Resource is still in use`  from docker compose, you likely need to `exit` your python shell and run this command again.
-* The first thing the build process does is wipe out the custom schemata and the things we've created in public, so it's not necessary to use the command above to wipe out everything. Until I run down the occasional hang-up from the `pg_imv` extension, you may need to do that though.
+* The first thing the build process does is wipe out the custom schemata and the things we've created in public, so it's not necessary to use the command above to wipe out everything. ~Until I run down the occasional hang-up from the `pg_imv` extension, you may need to do that though.~ I think this is fixed! It hasn't hung on me since i put a `sleep(5)` in there and moved my view creations into individual transactions. :crossed_fingers: 
 
 ### Entering into the python shell
 
@@ -34,11 +34,6 @@ The program build and test processes are both imdempotent, so you can just run t
 ./model.py --mode test # run all of them without pausing between them
 ./model.py --mode test --step # stop and wait for user input between them
 
-### Running the test steps
-
-```bash
-./model.py -m test # run all of them without pausing between them
-./model.py -m test -s # stop and wait for user input between them
 
 ## Environment
 
