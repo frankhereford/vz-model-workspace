@@ -16,7 +16,7 @@ HOST = "db"
 PORT = "5432"
 
 
-def seed(path, table, limit=None, batch=False):
+def seed(path, table, limit=None):
     print(f"Seeding {table} from {path}...")
 
     conn = psycopg.connect(
