@@ -60,4 +60,6 @@ CREATE TABLE cris.locations (
     PRIMARY KEY ("location_id")
 );
 
+CREATE INDEX locations_geometry_index ON cris.locations USING gist (geometry);
+
 COMMENT ON TABLE cris.locations IS 'Locations of interest to associate with crash records';
