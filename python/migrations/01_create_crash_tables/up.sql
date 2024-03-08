@@ -2,7 +2,6 @@
 CREATE SCHEMA cris;
 
 -- Crash CRIS Table Definition
--- Because the way that the crashes view is created, non-editable columns must follow editable columns in the table definition
 CREATE TABLE cris.crash_cris_data (
     "crash_id" int4 NOT NULL,
     "latitude" float8,
