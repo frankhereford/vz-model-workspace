@@ -5,7 +5,7 @@
 - Start the database
 
 ```bash
-docker compose up -d postgis
+docker compose up -d db
 ```
 
 - connect on localhost on 5432
@@ -34,3 +34,24 @@ docker compose run python
 ```
 
 - that should dump you in a shell where the `python` directory is bind-mounted on `/application`
+
+## Test Steps
+
+1. Spin up the database and run the Python container
+```
+docker compose up -d db
+docker compose run python
+```
+2. Run all up migrations on the DB. You can also migrate down if needed.
+```bash
+python migrate.py -d up
+```
+```bash
+python migrate.py -d down
+```
+3. Run the seed script with a limit. Finding a fast way to seed crashes has been a challenge for me.
+```bash
+python seed.py -l 50000
+```
+4. You can check out the changes applied to the DB by exploring `/python/migrations/`
+5. Run through the test cases using copy/paste from the files in `/python/test_cases/`

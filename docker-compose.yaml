@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   db:
+    platform: linux/arm64/v8
     build: ./postgis
     environment:
       POSTGRES_DB: visionzero
@@ -9,6 +10,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./python:/application
     ports:
       - 5432:5432
   python:

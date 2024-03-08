@@ -1,0 +1,7 @@
+-- Conflict resolution queue
+-- Still thinking through this but I think it would resemble the current conflict resolution queue.
+-- 1. The import script would attempt to insert the existing crash row into the database.
+-- 2. If the insert fails, the import script would record at least schema.table_name, json of the new record values, and
+--    json of the current VZ edits from cris.crash_edit_data.
+-- 3. The queue would be consumed through a UI that would expose the new/old values with focus on columns of most interest
+--    to the VZ team.
