@@ -37,6 +37,7 @@ The program build and test processes are both idempotent, so you can just run th
 ```bash
 ./model.py --mode test # run all of them without pausing between them
 ./model.py --mode test --step # stop and wait for user input between them
+```
 
 
 ## Environment
@@ -48,9 +49,6 @@ The program build and test processes are both idempotent, so you can just run th
 ```bash
 docker compose up -d db
 ```
-
-
-## Original stack instructions
 
 - connect on localhost on 5432
 - username: `vz`
