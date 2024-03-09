@@ -6,7 +6,7 @@
 
 ### Seed data
 
-* Please drop the seed CSVs into `python/seeds` :pray:
+* Please drop the seed CSVs into `python/seeds` and complete the `env_template` into `env` in the `python` directory.
 
 ### Erasing everything to start truely blank-slate
 
