@@ -49,6 +49,9 @@ The program build and test processes are both idempotent, so you can just run th
 docker compose up -d db
 ```
 
+
+## Original stack instructions
+
 - connect on localhost on 5432
 - username: `vz`
 - password: `vz`
