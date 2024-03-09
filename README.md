@@ -4,6 +4,10 @@
 
 ## Usage
 
+### Seed data
+
+* Please drop the seed CSVs into `python/seeds` :pray:
+
 ### Erasing everything to start truely blank-slate
 
 ```bash
