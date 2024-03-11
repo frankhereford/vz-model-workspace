@@ -1,8 +1,7 @@
 version: "3.8"
 services:
   db:
-    platform: linux/arm64/v8
-    build: ./postgis
+    image: frankinaustin/postgis-multiarch:14-3.3
     environment:
       POSTGRES_DB: visionzero
       POSTGRES_USER: vz

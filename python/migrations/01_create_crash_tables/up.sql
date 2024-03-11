@@ -30,7 +30,7 @@ COMMENT ON TABLE cris.crash_edit_data IS 'Crash data sourced from VZE edits';
 CREATE TABLE cris.crash_computed_data (
     "crash_id" int4 NOT NULL,
     "location_id" varchar,
-    "unique_unit_types" integer[],
+    "unique_unit_types" integer [] DEFAULT '{}',
     PRIMARY KEY ("crash_id")
 );
 
