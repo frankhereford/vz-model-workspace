@@ -5,6 +5,6 @@ ALTER TABLE cris.crash_cris_data ADD secondary_address text;
 ALTER TABLE cris.crash_edit_data ADD secondary_address text;
 
 -- Drop and recreate the crashes view
-DROP VIEW IF EXISTS cris.crashes;
+DROP VIEW IF EXISTS cris.crashes CASCADE;
 
 SELECT cris.make_crashes_view()
