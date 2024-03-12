@@ -42,6 +42,8 @@ BEGIN
             format('select %s from cris.crash_cris_data LEFT JOIN cris.crash_edit_data ON cris.crash_cris_data.crash_id = cris.crash_edit_data.crash_id', 
             array_to_string(query_columns, ',')) ||
             ') as crash_edits LEFT JOIN cris.crash_computed_data using ("crash_id");';
+    
+    RETURN;
 END;
 $$ LANGUAGE PLPGSQL;
 
