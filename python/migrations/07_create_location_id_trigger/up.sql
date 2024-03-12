@@ -48,7 +48,7 @@ COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Crea
 
 CREATE OR REPLACE TRIGGER CRASH_UPDATE_B_CRIS_LOCATION
 AFTER UPDATE ON CRIS.CRASH_CRIS_DATA
-FOR EACH ROW WHEN (NEW.latitude <> OLD.latitude AND NEW.longitude <> OLD.longitude) EXECUTE FUNCTION cris.crash_create_location();
+FOR EACH ROW WHEN (NEW.latitude <> OLD.latitude OR NEW.longitude <> OLD.longitude) EXECUTE FUNCTION cris.crash_create_location();
 
 COMMENT ON TRIGGER CRASH_CREATE_B_CRIS_LOCATION ON CRIS.CRASH_CRIS_DATA IS 'Create location from latitude and longitude on insert';
 

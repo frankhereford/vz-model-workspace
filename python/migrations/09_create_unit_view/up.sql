@@ -1,6 +1,6 @@
 -- build a query to coalesce edited values for editable columns and non-coalesced values for non-editable columns
-CREATE OR REPLACE FUNCTION cris.generate_unit_cris_and_edits_query()
-RETURNS SETOF cris.unit_cris_data
+CREATE OR REPLACE FUNCTION cris.make_units_view()
+RETURNS void
 AS $$
 DECLARE
     editable_columns text[];
@@ -38,19 +38,19 @@ BEGIN
     END LOOP;
     
 
-    -- return query to get edited values of columns if they exist or non-edited values if they don't for editable columns
-    -- this joins the values of non-editable columns so we have a complete unit row
-	RETURN QUERY EXECUTE
-        format('select %s from cris.unit_cris_data LEFT JOIN cris.unit_edit_data ON cris.unit_cris_data.unit_id = cris.unit_edit_data.unit_id', 
-        array_to_string(query_columns, ','));
+    -- make the view that coalesces the cris and edit columns and joins the computed columns
+	EXECUTE 'CREATE OR REPLACE VIEW cris.units AS SELECT * FROM (' || 
+            format('select %s from cris.unit_cris_data LEFT JOIN cris.unit_edit_data ON cris.unit_cris_data.unit_id = cris.unit_edit_data.unit_id', 
+            array_to_string(query_columns, ',')) || 
+            ') as unit_edits LEFT JOIN cris.unit_computed_data using ("unit_id");'
+    
+    RETURN;
 END;
 $$ LANGUAGE PLPGSQL;
 
-COMMENT ON FUNCTION cris.generate_unit_cris_and_edits_query IS 'Find non-editable columns, coalesce edited and CRIS values, and return a unit query';
+-- call function to create view
+SELECT cris.make_units_view();
 
--- View to merge together results of coalesced edits, CRIS data, and computed data
-CREATE OR REPLACE VIEW cris.units AS
-SELECT * FROM cris.generate_unit_cris_and_edits_query() as unit_edits
-LEFT JOIN cris.unit_computed_data using ("unit_id");
+COMMENT ON FUNCTION cris.make_units_view IS 'Find non-editable columns, coalesce edited and CRIS values, and make a view to merge them together';
 
 COMMENT ON VIEW cris.units IS 'Merge together coalesced edit/cris columns and computed columns';

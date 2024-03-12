@@ -7,6 +7,4 @@ ALTER TABLE cris.crash_edit_data ADD secondary_address text;
 -- Drop and recreate the crashes view
 DROP VIEW IF EXISTS cris.crashes;
 
-CREATE OR REPLACE VIEW cris.crashes AS
-SELECT * FROM cris.generate_crash_cris_and_edits_query()
-LEFT JOIN cris.crash_computed_data USING ("crash_id");
+SELECT cris.make_crashes_view()

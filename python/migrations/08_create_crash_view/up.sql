@@ -1,6 +1,6 @@
 -- build a query to coalesce edited values for editable columns and non-coalesced values for non-editable columns
-CREATE OR REPLACE FUNCTION cris.generate_crash_cris_and_edits_query()
-RETURNS SETOF cris.crash_cris_data
+CREATE OR REPLACE FUNCTION cris.make_crashes_view()
+RETURNS void
 AS $$
 DECLARE
     editable_columns text[];
@@ -37,19 +37,19 @@ BEGIN
         END IF;
     END LOOP;
 
-    -- return query to get edited values of columns if they exist or non-edited values if they don't for editable columns
-    -- this joins the values of non-editable columns so we have a complete crash row
-	RETURN QUERY EXECUTE
-        format('select %s from cris.crash_cris_data LEFT JOIN cris.crash_edit_data ON cris.crash_cris_data.crash_id = cris.crash_edit_data.crash_id', 
-        array_to_string(query_columns, ','));
+    -- make the view that coalesces the cris and edit columns and joins the computed columns
+	EXECUTE 'CREATE OR REPLACE VIEW cris.crashes AS SELECT * FROM (' ||
+            format('select %s from cris.crash_cris_data LEFT JOIN cris.crash_edit_data ON cris.crash_cris_data.crash_id = cris.crash_edit_data.crash_id', 
+            array_to_string(query_columns, ',')) ||
+            ') as crash_edits LEFT JOIN cris.crash_computed_data using ("crash_id");';
 END;
 $$ LANGUAGE PLPGSQL;
 
-COMMENT ON FUNCTION cris.generate_crash_cris_and_edits_query IS 'Find non-editable columns, coalesce edited and CRIS values, and return a crash query';
+-- call function to create view
+SELECT cris.make_crashes_view();
+
+COMMENT ON FUNCTION cris.make_crashes_view IS 'Find non-editable columns, coalesce edited and CRIS values, and make a view to merge them together';
 
 -- View to merge together results of coalesced edits, CRIS data, and computed data
-CREATE OR REPLACE VIEW cris.crashes AS
-SELECT * FROM cris.generate_crash_cris_and_edits_query()
-LEFT JOIN cris.crash_computed_data using ("crash_id");
 
 COMMENT ON VIEW CRIS.CRASHES IS 'Merge together coalesced edit/cris columns and computed columns';
