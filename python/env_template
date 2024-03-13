@@ -1,0 +1,5 @@
+# put your read replica credentials in here
+PGHOST=
+PGUSER=
+PGPASSWORD=
+PGDATABASE=
