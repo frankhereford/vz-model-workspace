@@ -1,4 +1,4 @@
-FROM postgis/postgis:16-master
+FROM frankinaustin/postgis-16-3.4:latest
 
 RUN apt-get update && \
     apt-get install -y postgresql-16-periods git build-essential postgresql-server-dev-16
