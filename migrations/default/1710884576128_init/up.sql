@@ -25,7 +25,7 @@ insert into db.road_types (id, description, owner) values
 (5, 'other', 'cris'),
 (9000000, 'urban trail', 'vz');
 
--- the check constraints prevent us from creating a cris-owned values
+-- the check constraints prevent us from creating cris-owned values
 -- in our protected vz namespace. we will add additional constraints
 -- to the _cris tables to prevent cris from using our vz lookup values
 alter table db.road_types add constraint road_type_owner_check
