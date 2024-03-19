@@ -9,6 +9,9 @@ object_relationships:
         table:
           name: crashes
           schema: db
+  - name: road_type
+    using:
+      foreign_key_constraint_on: road_type_id
 array_relationships:
   - name: crashes_vzs
     using:

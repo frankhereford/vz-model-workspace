@@ -4,6 +4,8 @@
 - "!include db_people.yaml"
 - "!include db_people_cris.yaml"
 - "!include db_people_vz.yaml"
+- "!include db_road_types.yaml"
+- "!include db_unit_types.yaml"
 - "!include db_units.yaml"
 - "!include db_units_cris.yaml"
 - "!include db_units_vz.yaml"
