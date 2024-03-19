@@ -3,9 +3,9 @@ services:
   db:
     build: ./postgis
     environment:
-      POSTGRES_DB: visionzero
-      POSTGRES_USER: vz
-      POSTGRES_PASSWORD: vz
+      POSTGRES_DB: atd_vz_data
+      POSTGRES_USER: visionzero
+      POSTGRES_PASSWORD: visionzero
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - db_data:/var/lib/postgresql/data
