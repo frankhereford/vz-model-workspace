@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<database name="atd_vz_data" schema="db" type="PostgreSQL - 16.2 (Debian 16.2-1.pgdg110+2)">
+   <sequences>
+      <sequence increment="1" name="persons_cris_id_seq" startValue="1"/>
+      <sequence increment="1" name="units_cris_id_seq" startValue="1"/>
+   </sequences>
+   <tables>
+      <table name="crashes" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="crash_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <child column="crash_id" foreignKey="persons_crash_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons"/>
+            <child column="crash_id" foreignKey="units_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="units"/>
+            <parent column="crash_id" foreignKey="crashes_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_cris"/>
+         </column>
+         <primaryKey column="crash_id" sequenceNumberInPK="1"/>
+         <index name="crashes_pkey" unique="true">
+            <column ascending="true" name="crash_id"/>
+         </index>
+      </table>
+      <table name="crashes_cris" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="crash_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <child column="crash_id" foreignKey="crashes_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes"/>
+            <child column="crash_id" foreignKey="crashes_vz_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_vz"/>
+            <child column="crash_id" foreignKey="persons_cris_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="persons_cris"/>
+            <child column="crash_id" foreignKey="persons_vz_crash_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons_vz"/>
+            <child column="crash_id" foreignKey="units_cris_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="units_cris"/>
+            <child column="crash_id" foreignKey="units_vz_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="units_vz"/>
+         </column>
+         <primaryKey column="crash_id" sequenceNumberInPK="1"/>
+         <index name="crashes_cris_pkey" unique="true">
+            <column ascending="true" name="crash_id"/>
+         </index>
+      </table>
+      <table name="crashes_vz" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="crash_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="crashes_vz_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_cris"/>
+         </column>
+         <primaryKey column="crash_id" sequenceNumberInPK="1"/>
+         <index name="crashes_vz_pkey" unique="true">
+            <column ascending="true" name="crash_id"/>
+         </index>
+      </table>
+      <table name="persons" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="persons_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="unit_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="persons_unit_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="crash_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="persons_crash_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="crashes"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prsn_nbr" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="unit_nbr" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="is_primary" nullable="true" remarks="" size="1" type="bool" typeCode="-7"/>
+         <index name="persons_unit_id_idx" unique="false">
+            <column ascending="true" name="unit_id"/>
+         </index>
+         <index name="unique_persons" unique="true">
+            <column ascending="true" name="unit_id"/>
+            <column ascending="true" name="prsn_nbr"/>
+         </index>
+      </table>
+      <table name="persons_cris" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('db.persons_cris_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4">
+            <child column="id" foreignKey="persons_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons"/>
+            <child column="id" foreignKey="persons_vz_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons_vz"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="unit_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="persons_cris_unit_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="units_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="crash_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="persons_cris_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prsn_nbr" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="unit_nbr" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="5" name="is_primary" nullable="true" remarks="" size="1" type="bool" typeCode="-7"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="persons_cris_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="persons_cris_unit_id_idx" unique="false">
+            <column ascending="true" name="unit_id"/>
+         </index>
+         <index name="unique_persons_cris" unique="true">
+            <column ascending="true" name="unit_id"/>
+            <column ascending="true" name="prsn_nbr"/>
+         </index>
+      </table>
+      <table name="persons_vz" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="persons_vz_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="unit_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="persons_vz_unit_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="crash_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="persons_vz_crash_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="crashes_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prsn_nbr" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="unit_nbr" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="is_primary" nullable="true" remarks="" size="1" type="bool" typeCode="-7"/>
+         <index name="persons_vz_unit_id_idx" unique="false">
+            <column ascending="true" name="unit_id"/>
+         </index>
+      </table>
+      <table name="units" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <child column="unit_id" foreignKey="persons_unit_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons"/>
+            <parent column="id" foreignKey="units_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="crash_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="units_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="unit_nbr" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="units_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="unique_units" unique="true">
+            <column ascending="true" name="crash_id"/>
+            <column ascending="true" name="unit_nbr"/>
+         </index>
+      </table>
+      <table name="units_cris" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('db.units_cris_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4">
+            <child column="unit_id" foreignKey="persons_cris_unit_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="persons_cris"/>
+            <child column="unit_id" foreignKey="persons_vz_unit_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="persons_vz"/>
+            <child column="id" foreignKey="units_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units"/>
+            <child column="id" foreignKey="units_vz_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units_vz"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="crash_id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="units_cris_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="unit_nbr" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="units_cris_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="unique_units_cris" unique="true">
+            <column ascending="true" name="crash_id"/>
+            <column ascending="true" name="unit_nbr"/>
+         </index>
+      </table>
+      <table name="units_vz" remarks="" schema="db" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="id" foreignKey="units_vz_id_fkey" implied="false" onDeleteCascade="false" schema="db" table="units_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="crash_id" nullable="true" remarks="" size="10" type="int4" typeCode="4">
+            <parent column="crash_id" foreignKey="units_vz_crash_id_fkey" implied="false" onDeleteCascade="true" schema="db" table="crashes_cris"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="unit_nbr" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="units_vz_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="unique_units_vz" unique="true">
+            <column ascending="true" name="crash_id"/>
+            <column ascending="true" name="unit_nbr"/>
+         </index>
+      </table>
+   </tables>
+   <routines>
+      <routine dataAccess="MODIFIES" deterministic="false" name="persons_cris_set_unit_id()" returnType="trigger" securityType="INVOKER" type="FUNCTION">
+         <comment/>
+         <definition language="plpgsql"><![CDATA[Redacted, use --include-routine-definition]]></definition>
+         <parameters>
+            <parameter mode="IN"/>
+         </parameters>
+      </routine>
+   </routines>
+</database>
