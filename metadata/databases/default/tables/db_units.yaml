@@ -1,0 +1,18 @@
+table:
+  name: units
+  schema: db
+object_relationships:
+  - name: crash
+    using:
+      foreign_key_constraint_on: crash_id
+  - name: units_cri
+    using:
+      foreign_key_constraint_on: id
+array_relationships:
+  - name: people
+    using:
+      foreign_key_constraint_on:
+        column: unit_id
+        table:
+          name: people
+          schema: db

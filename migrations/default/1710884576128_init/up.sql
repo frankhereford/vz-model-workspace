@@ -201,20 +201,3 @@ create or replace trigger insert_new_people_cris
 after insert on db.people_cris
 for each row
 execute procedure db.people_cris_insert_rows();
-
--------------------------------------------
--------- Tests___ -------------------------
--------------------------------------------
-
-insert into db.crashes_cris (crash_id, test_column) values (1, 'h');
-insert into db.units_cris (crash_id, unit_nbr) values (1, 1);
-insert into db.people_cris (crash_id, unit_nbr, prsn_nbr, is_primary) values (1, 1, 1, true);
-select * from db.crashes_cris;
-select * from db.crashes_vz;
-select * from db.crashes;
-select * from db.units_cris;
-select * from db.units_vz;
-select * from db.units;
-select * from db.people_cris;
-select * from db.people_vz;
-select * from db.people;
