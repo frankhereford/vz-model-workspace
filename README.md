@@ -9,10 +9,25 @@ docker compose up -d db
 ```
 
 - connect on localhost on 5432
-- username: `vz`
-- password: `vz`
-- database: `visionzero`
+- username: `visionzero`
+- password: `visionzero`
+- database: `atd_vz_data`
 - it trusts all connections, so the password is optional-ish
+
+
+## Schemaspy
+
+Build the schemaspy docs
+
+```shell
+$ docker run --net=host -v "$PWD/schemaspy-output:/output" -v "$PWD/schemaspy.properties:/schemaspy.properties" schemaspy/schemaspy:snapshot
+```
+
+Serve the schemaspy docs
+
+```shell
+$ python -m http.server --directory schemaspy-output
+```
 
 ## Adminer (DB UI)
 
