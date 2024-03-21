@@ -1,27 +1,4 @@
 --
--- handle a people record insert by setting
--- the  unit_id column based on the crash_id and unit_nbr
---
-create or replace function db.people_cris_set_unit_id()
-returns trigger
-language plpgsql
-as $$
-DECLARE
-   unit_record record;
-BEGIN
-    SELECT INTO unit_record *
-        FROM db.units_cris where crash_id = new.crash_id and unit_nbr = new.unit_nbr;
-    new.unit_id = unit_record.id;
-    RETURN new;
-END;
-$$;
-
-create trigger set_cris_person_unit_id
-before insert on db.people_cris
-for each row
-execute procedure db.people_cris_set_unit_id();
-
---
 -- handle crash record insert by copying
 -- to the vz_ and unified tables
 --
@@ -72,6 +49,29 @@ for each row
 execute procedure db.units_cris_insert_rows();
 
 --
+-- handle a people record insert by setting
+-- the  unit_id column based on the crash_id and unit_nbr
+--
+create or replace function db.people_cris_set_unit_id()
+returns trigger
+language plpgsql
+as $$
+DECLARE
+   unit_record record;
+BEGIN
+    SELECT INTO unit_record *
+        FROM db.units_cris where crash_id = new.crash_id and unit_nbr = new.unit_nbr;
+    new.unit_id = unit_record.id;
+    RETURN new;
+END;
+$$;
+
+create trigger set_cris_person_unit_id
+before insert on db.people_cris
+for each row
+execute procedure db.people_cris_set_unit_id();
+
+--
 -- handle a people record insert by copying
 -- to the vz_ and unified tables
 --
@@ -95,7 +95,6 @@ create or replace trigger insert_new_people_cris
 after insert on db.people_cris
 for each row
 execute procedure db.people_cris_insert_rows();
-
 
 --
 -- handle a cris crash update by updating the
@@ -133,10 +132,10 @@ begin
         update_stmt := update_stmt
             || array_to_string(updates_todo, ',')
             || format(' where db.crashes.crash_id = %s', new.crash_id);
-        raise notice 'Executing statement: %', update_stmt;
+        raise notice 'Executing unified record update: %', update_stmt;
         execute (update_stmt) using new;
     else
-        raise notice 'No changes to unified record detected.';
+        raise notice 'No changes to unified record needed';
     end if;
     return null;
 end;
@@ -145,7 +144,6 @@ $$;
 create trigger update_crash_from_cris_crash_update
 after update on db.crashes_cris for each row
 execute procedure db.crashes_cris_update();
-
 
 --
 -- handle a vz crash update by updating the
@@ -182,7 +180,7 @@ begin
         || array_to_string(updates_todo, ',')
         || format(' from (select * from db.crashes_cris where db.crashes_cris.crash_id = %s) as cris_record', new.crash_id)
         || format(' where db.crashes.crash_id = %s ', new.crash_id);
-    raise notice 'Executing statement: %', update_stmt;
+    raise notice 'Executing unified record update: %', update_stmt;
     execute (update_stmt) using new;
     return null;
 end;

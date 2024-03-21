@@ -87,6 +87,7 @@ create table db.units_cris (
 alter table db.units_cris add constraint cris_unit_type_chk
 check (unit_type_id < 9000000);
 
+
 create table db.units_vz (
     id integer primary key references db.units_cris (
         id
