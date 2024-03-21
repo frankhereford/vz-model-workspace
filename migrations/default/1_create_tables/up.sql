@@ -135,7 +135,6 @@ create table db.people_vz (
     unit_id integer references db.units_cris (
         id
     ),
-    -- crash_id integer references db.crashes_cris (crash_id),
     prsn_nbr integer,
     unit_nbr integer,
     is_primary boolean
@@ -149,7 +148,6 @@ create table db.people (
     unit_id integer not null references db.units (
         id
     ),
-    -- crash_id integer references db.crashes (crash_id),
     prsn_nbr integer,
     unit_nbr integer,
     is_primary boolean,
