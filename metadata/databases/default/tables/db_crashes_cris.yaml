@@ -20,13 +20,6 @@ object_relationships:
     using:
       foreign_key_constraint_on: road_type_id
 array_relationships:
-  - name: crashes_vzs
-    using:
-      foreign_key_constraint_on:
-        column: crash_id
-        table:
-          name: crashes_vz
-          schema: db
   - name: people_cris
     using:
       foreign_key_constraint_on:
