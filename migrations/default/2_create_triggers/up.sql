@@ -238,3 +238,48 @@ $$;
 create trigger update_unit_from_cris_units_update
 after update on db.units_cris for each row
 execute procedure db.units_cris_update();
+
+--
+-- handle a vz unit update by updating the
+-- unified unit record from cris + vz values
+--
+create or replace function db.units_vz_update()
+returns trigger
+language plpgsql
+as $$
+declare
+    new_vz_jb jsonb := to_jsonb (new);
+    old_vz_jb jsonb := to_jsonb (old);
+    cris_record_jb jsonb;
+    column_name text;
+    updates_todo text [] := '{}';
+    update_stmt text := 'update db.units set ';
+begin
+    -- get corresponding the cris record as jsonb
+    SELECT to_jsonb(units_cris) INTO cris_record_jb from db.units_cris where db.units_cris.crash_id = new.id;
+    -- for every key in the vz json object
+    for column_name in select jsonb_object_keys(new_vz_jb) loop
+        --  create a set statement for the column
+        if cris_record_jb ? column_name then
+            -- if this column exists on the cris table, coalesce vz + cris values
+            updates_todo := updates_todo
+            || format('%I = coalesce($1.%I, cris_record.%I)', column_name, column_name, column_name);
+        else
+            updates_todo := updates_todo
+            || format('%I = $1.%I', column_name, column_name);
+        end if;
+    end loop;
+    -- join all `set` clauses together
+    update_stmt := update_stmt
+        || array_to_string(updates_todo, ',')
+        || format(' from (select * from db.units_cris where db.units_cris.id = %s) as cris_record', new.id)
+        || format(' where db.units.id = %s ', new.id);
+    raise notice 'Updating unified unit record from VZ update: %', update_stmt;
+    execute (update_stmt) using new;
+    return null;
+end;
+$$;
+
+create trigger update_unit_from_vz_unit_update
+after update on db.units_vz for each row
+execute procedure db.units_vz_update();

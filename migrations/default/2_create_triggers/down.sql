@@ -18,3 +18,6 @@ drop function if exists db.crashes_vz_update;
 
 drop trigger if exists update_unit_from_cris_units_update on db.units_cris;
 drop function if exists units_cris_update;
+
+drop trigger if exists update_unit_from_vz_unit_update on db.units_vz;
+drop function if exists db.units_vz_update;
