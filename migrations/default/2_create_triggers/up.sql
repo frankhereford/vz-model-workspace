@@ -132,7 +132,7 @@ begin
         update_stmt := update_stmt
             || array_to_string(updates_todo, ',')
             || format(' where db.crashes.crash_id = %s', new.crash_id);
-        raise notice 'Executing unified record update: %', update_stmt;
+        raise notice 'Updating unified crash record from CRIS update: %', update_stmt;
         execute (update_stmt) using new;
     else
         raise notice 'No changes to unified record needed';
@@ -180,7 +180,7 @@ begin
         || array_to_string(updates_todo, ',')
         || format(' from (select * from db.crashes_cris where db.crashes_cris.crash_id = %s) as cris_record', new.crash_id)
         || format(' where db.crashes.crash_id = %s ', new.crash_id);
-    raise notice 'Executing unified record update: %', update_stmt;
+    raise notice 'Updating unified crash record from VZ update: %', update_stmt;
     execute (update_stmt) using new;
     return null;
 end;
@@ -189,3 +189,52 @@ $$;
 create trigger update_crash_from_vz_crash_update
 after update on db.crashes_vz for each row
 execute procedure db.crashes_vz_update();
+
+--
+-- handle a cris unit update by updating the
+-- unified unit record from cris + vz values
+--
+create or replace function db.units_cris_update()
+returns trigger
+language plpgsql
+as $$
+declare
+    new_cris_jb jsonb := to_jsonb (new);
+    old_cris_jb jsonb := to_jsonb (old);
+    vz_record_jb jsonb;
+    column_name text;
+    updates_todo text [] := '{}';
+    update_stmt text := 'update db.units set ';
+begin
+    -- get corresponding the VZ record as jsonb
+    SELECT to_jsonb(units_vz) INTO vz_record_jb from db.units_vz where db.units_vz.id = new.id;
+
+    -- for every key in the cris json object
+    for column_name in select jsonb_object_keys(new_cris_jb) loop
+        -- if the new value doesn't match the old
+        if(new_cris_jb -> column_name <> old_cris_jb -> column_name) then
+            -- see if the vz record has a value for this field
+            if (vz_record_jb ->> column_name is  null) then
+                -- this value is not overridden by VZ
+                -- so update the unified record with this new value
+                updates_todo := updates_todo || format('%I = $1.%I', column_name, column_name);
+            end if;
+        end if;
+    end loop;
+    if(array_length(updates_todo, 1) > 0) then
+        -- complete the update statement by joining all `set` clauses together
+        update_stmt := update_stmt
+            || array_to_string(updates_todo, ',')
+            || format(' where db.units.id = %s', new.id);
+        raise notice 'Updating unified unit record from CRIS update: %', update_stmt;
+        execute (update_stmt) using new;
+    else
+        raise notice 'No changes to unified record needed';
+    end if;
+    return null;
+end;
+$$;
+
+create trigger update_unit_from_cris_units_update
+after update on db.units_cris for each row
+execute procedure db.units_cris_update();
