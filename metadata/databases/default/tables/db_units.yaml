@@ -5,9 +5,12 @@ object_relationships:
   - name: crash
     using:
       foreign_key_constraint_on: crash_id
+<<<<<<< HEAD
   - name: unit_type
     using:
       foreign_key_constraint_on: unit_type_id
+=======
+>>>>>>> main
   - name: units_cri
     using:
       foreign_key_constraint_on: id
