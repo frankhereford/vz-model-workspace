@@ -34,7 +34,7 @@ insert into db.unit_types (id, description, owner) values
 (1, 'vehicle', 'cris'),
 (2, 'pedestrian', 'cris'),
 (3, 'motorcycle', 'cris'),
-(4, 'spaceship', 'cris'),
+(4, 'truck', 'cris'),
 (5, 'bicycle', 'cris'),
 (6, 'other', 'cris'),
 (90000, 'e-scooter', 'vz');
