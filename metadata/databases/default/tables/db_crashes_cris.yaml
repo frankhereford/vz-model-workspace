@@ -9,6 +9,13 @@ object_relationships:
         table:
           name: crashes
           schema: db
+  - name: crashes_vz
+    using:
+      foreign_key_constraint_on:
+        column: crash_id
+        table:
+          name: crashes_vz
+          schema: db
   - name: road_type
     using:
       foreign_key_constraint_on: road_type_id

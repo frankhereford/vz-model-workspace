@@ -1,7 +1,6 @@
 drop schema if exists db cascade;
 create schema db;
 
-
 -------------------------------------------
 -------- lookup tables --------------------
 -------------------------------------------
@@ -23,13 +22,13 @@ insert into db.road_types (id, description, owner) values
 (3, 'arterial', 'cris'),
 (4, 'highway', 'cris'),
 (5, 'other', 'cris'),
-(9000000, 'urban trail', 'vz');
+(90000, 'urban trail', 'vz');
 
 -- the check constraints prevent us from creating cris-owned values
 -- in our protected vz namespace. we will add additional constraints
 -- to the _cris tables to prevent cris from using our vz lookup values
 alter table db.road_types add constraint road_type_owner_check
-check ((id < 9000000 and owner = 'cris') or (id >= 9000000 and owner = 'vz'));
+check ((id < 90000 and owner = 'cris') or (id >= 90000 and owner = 'vz'));
 
 insert into db.unit_types (id, description, owner) values
 (1, 'vehicle', 'cris'),
@@ -38,10 +37,10 @@ insert into db.unit_types (id, description, owner) values
 (4, 'spaceship', 'cris'),
 (5, 'bicycle', 'cris'),
 (6, 'other', 'cris'),
-(9000000, 'e-scooter', 'vz');
+(90000, 'e-scooter', 'vz');
 
 alter table db.unit_types add constraint unit_type_owner_check
-check ((id < 9000000 and owner = 'cris') or (id >= 9000000 and owner = 'vz'));
+check ((id < 90000 and owner = 'cris') or (id >= 90000 and owner = 'vz'));
 
 -------------------------------------------
 -------- Crash tables ---------------------
@@ -54,7 +53,7 @@ create table db.crashes_cris (
 -- this prevents cris from using a value that falls within
 -- our custom lookup value namespace
 alter table db.crashes_cris add constraint cris_road_type_chk
-check (road_type_id < 9000000);
+check (road_type_id < 90000);
 
 create table db.crashes_vz (
     crash_id integer primary key not null references db.crashes_cris (
@@ -85,7 +84,7 @@ create table db.units_cris (
 );
 
 alter table db.units_cris add constraint cris_unit_type_chk
-check (unit_type_id < 9000000);
+check (unit_type_id < 90000);
 
 
 create table db.units_vz (
