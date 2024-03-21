@@ -21,3 +21,6 @@ drop function if exists units_cris_update;
 
 drop trigger if exists update_unit_from_vz_unit_update on db.units_vz;
 drop function if exists db.units_vz_update;
+
+drop trigger if exists update_people_from_cris_people_update on db.people_cris;
+drop function db.people_cris_update;
