@@ -106,15 +106,42 @@ select * from people_unified_view;
 -- (we are simulating a cris import by using crashid + unit nbr + prsn nbr)
 update db.people_cris set is_primary = false where crash_id = 1 and unit_nbr = 1 and prsn_nbr = 1;
 
--- verify that there is not only one primary person across all 4 people records
+-- verify that there is now only one primary person across all 4 people records
 select * from people_cris_view;
 select * from people_vz_view;
 select * from people_unified_view;
 
 -- edit vz people to set to primary
-update db.people_vz set is_primary = false where id = 2;
+update db.people_vz set is_primary = true where id = 2;
 
-update db.people_vz set is_primary = true where id = 1;
-update db.people_vz set is_primary = null where id = 1;
+-- verify that there is now two primary people across all 4 people records
+select * from people_cris_view;
+select * from people_vz_view;
+select * from people_unified_view;
 
+-- revert vz primary person override
+update db.people_vz set is_primary = null where id = 2;
 
+-- verify that there is now just one primary person across all 4 people records
+select * from people_cris_view;
+select * from people_vz_view;
+select * from people_unified_view;
+
+-------------------------------
+-- 4. Test lookup value usage
+-------------------------------
+-- try to insert a cris lookup value in our protected namespace (it fails)
+insert into db.road_types (id, description, owner) values (900001, 'new cris lookup value', 'cris');
+-- create a new custom vz lookup value in our protected namespace
+insert into db.road_types (id, description, owner) values (900001, 'new custom value', 'vz');
+-- try to use the new custom value in the crashes_cris (it fails)
+update db.crashes_cris set road_type_id = 900001 where crash_id = 1;
+-- use the new custom value in the crashes_vz table
+update db.crashes_vz set road_type_id = 900001 where crash_id = 1;
+
+-------------------------------
+-- 5. Cascade deletes
+-------------------------------
+-- i'm not sure that we would everrr want to do this,
+-- but this will delete all rows from all non-lookup tables
+delete from db.crashes_cris where true;
