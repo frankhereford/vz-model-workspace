@@ -121,7 +121,8 @@ create table db.people_cris (
     prsn_nbr integer not null,
     unit_nbr integer not null,
     is_primary boolean default false,
-    constraint unique_people_cris unique (unit_id, prsn_nbr)
+    constraint unique_people_cris unique (unit_id, prsn_nbr),
+    constraint unique_people_cris unique (crash_id, prsn_nbr)
 );
 
 create index on db.people_cris (unit_id);
