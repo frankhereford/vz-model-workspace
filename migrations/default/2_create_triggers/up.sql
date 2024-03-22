@@ -420,3 +420,32 @@ create trigger update_crash_location
 before insert or update on db.crashes
 for each row
 execute procedure db.update_crash_location();
+
+
+--
+-- Insert into change log on crash insert/update
+--
+create or replace function db.insert_change_log_crashes()
+returns trigger
+language plpgsql
+as $$
+declare
+    record_id int;
+begin
+    if TG_TABLE_NAME = 'crashes' then
+        record_id = new.crash_id;
+    else
+        record_id = new.id;
+    end if;
+
+   insert into db.change_log (record_id, record_type, operation_type, record_json, created_by) values
+    (record_id, TG_TABLE_NAME, lower(TG_OP), row_to_json(new), 'unknown');
+    
+    return null;
+END;
+$$;
+
+create trigger insert_change_log_crashes
+after insert or update on db.crashes
+for each row
+execute procedure db.insert_change_log_crashes();

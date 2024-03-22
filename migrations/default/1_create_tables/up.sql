@@ -315,3 +315,16 @@ create table db.people (
 );
 
 create index on db.people (unit_id);
+
+-------------------------------------------
+-------- Change log -----------------------
+-------------------------------------------
+create table db.change_log (
+    id serial primary key,
+    record_id integer not null,
+    record_type text not null,
+    operation_type text not null,
+    record_json jsonb not null,
+    created_at timestamp with time zone default now(),
+    created_by text not null
+);
