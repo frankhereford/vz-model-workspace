@@ -9,8 +9,8 @@ as
 $$
 BEGIN
     -- insert new unified record
-    INSERT INTO db.crashes (crash_id, road_type_id) values (
-        new.crash_id, new.road_type_id
+    INSERT INTO db.crashes (crash_id, road_type_id, latitude, longitude) values (
+        new.crash_id, new.road_type_id, new.latitude, new.longitude
     );
     -- insert new (editable) vz record (only record ID)
     INSERT INTO db.crashes_vz (crash_id) values (new.crash_id);
@@ -378,3 +378,45 @@ $$;
 create trigger update_people_from_vz_people_update
 after update on db.people_vz for each row
 execute procedure db.people_vz_update();
+
+
+--
+-- Handle location polygon association when unified
+-- crash record is inserted or updated
+--
+create or replace function db.update_crash_location()
+returns trigger
+language plpgsql
+as $$
+begin
+    if (new.latitude is distinct from old.latitude OR new.longitude is distinct from old.longitude) THEN
+        if (new.latitude is not null and new.longitude is not null) then
+            raise notice 'updating location id for crash id: %', new.crash_id;
+            new.geog = st_setsrid(st_makepoint(new.longitude, new.latitude), 4326);
+            new.location_id = (
+                select
+                    location_id
+                from
+                    db.locations
+                where
+                    location_group = 1 -- level 1-4 polygons
+                    and st_contains(geometry, new.geog::geometry)
+                limit 1);
+                raise notice 'found location: % compared to previous location: %', new.location_id, old.location_id;
+            else
+                raise notice 'setting geography and location id to null';
+                -- reset location id
+                new.geog = null;
+                new.location_id = null;
+        end if;
+    else
+        raise notice 'crash latitude and longitude have not changed. no location update needed.';
+    end if;
+    RETURN NEW;
+END;
+$$;
+
+create trigger update_crash_location
+before insert or update on db.crashes
+for each row
+execute procedure db.update_crash_location();

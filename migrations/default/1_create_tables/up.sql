@@ -43,11 +43,24 @@ alter table db.unit_types add constraint unit_type_owner_check
 check ((id < 90000 and owner = 'cris') or (id >= 90000 and owner = 'vz'));
 
 -------------------------------------------
+-------- Locations table -----------------
+-------------------------------------------
+create table db.locations (
+    location_id character varying primary key,
+    geometry public.geometry (multipolygon, 4326),
+    location_group integer default 0
+);
+
+create index locations_geometry_index on db.locations using gist (geometry);
+
+-------------------------------------------
 -------- Crash tables ---------------------
 -------------------------------------------
 create table db.crashes_cris (
     crash_id integer primary key,
-    road_type_id integer references db.road_types (id)
+    road_type_id integer references db.road_types (id),
+    latitude numeric,
+    longitude numeric
 );
 
 -- this prevents cris from using a value that falls within
@@ -59,14 +72,20 @@ create table db.crashes_vz (
     crash_id integer primary key not null references db.crashes_cris (
         crash_id
     ) on delete cascade on update restrict,
-    road_type_id integer references db.road_types (id)
+    road_type_id integer references db.road_types (id),
+    latitude numeric,
+    longitude numeric
 );
 
 create table db.crashes (
     crash_id integer unique not null references db.crashes_cris (
         crash_id
     ) on delete cascade on update restrict,
-    road_type_id integer references db.road_types (id)
+    road_type_id integer references db.road_types (id),
+    latitude numeric,
+    longitude numeric,
+    geog geography,
+    location_id text references db.locations (location_id)
 );
 
 
