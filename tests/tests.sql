@@ -25,6 +25,8 @@ select * from people_cris_view;
 select * from people_vz_view;
 -- verify that unified records match cris
 select * from people_unified_view;
+-- verify there are seven entries in the change log
+select * from db.changes;
 
 -------------------------------
 -- 2. Update crashes
@@ -59,6 +61,9 @@ select * from people_vz_view;
 -- verify that unified records have road type 4 (arterial)
 select * from people_unified_view;
 
+-- verify that three db.change_log records have been created
+-- each with operation_type = UPDATE
+select * from db.change_log;
 
 -------------------------------
 -- 2. Update units
@@ -99,6 +104,10 @@ select * from people_cris_view;
 select * from people_vz_view;
 select * from people_unified_view;
 
+-- and verify that the change log has three UPDATE records
+-- where record_type = unit
+select * from db.change_log;
+
 -------------------------------
 -- 3. Update people
 -------------------------------
@@ -126,6 +135,10 @@ update db.people_vz set is_primary = null where id = 2;
 select * from people_cris_view;
 select * from people_vz_view;
 select * from people_unified_view;
+
+-- and verify that the change log has three UPDATE records
+-- where record_type = people
+select * from db.change_log;
 
 -------------------------------
 -- 4. Test lookup value usage
