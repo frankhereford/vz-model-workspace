@@ -233,7 +233,7 @@ def main():
                     for p in records:
                         p["is_primary"] = False
 
-                    pp_records = handle_values(
+                    pp_records = handle_empty_strings(
                         remove_unsupported_columns(
                             lower_case_keys(load_csv(p_person_file["path"])),
                             table_name,
@@ -246,7 +246,7 @@ def main():
                 upsert_mutation = make_upsert_mutation(table_name)
 
                 for chunk in chunks(records, UPLOAD_BATCH_SIZE):
-                    print("uploading records...")
+                    print(f"uploading {len(chunk)} {table_name} records...")
                     start_time = time.time()
                     res = make_hasura_request(
                         endpoint=HASURA_ENDPOINT,
