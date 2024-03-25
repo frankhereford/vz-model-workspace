@@ -288,6 +288,7 @@ create table db.people_cris (
 );
 
 create index on db.people_cris (unit_id);
+create index on db.people_cris (crash_id);
 
 create table db.people_vz (
     id integer references db.people_cris (id)
@@ -300,6 +301,7 @@ create table db.people_vz (
     is_primary boolean
 );
 
+create index on db.people_vz (id);
 create index on db.people_vz (unit_id);
 
 create table db.people (
@@ -314,6 +316,7 @@ create table db.people (
     constraint unique_people unique (unit_id, prsn_nbr)
 );
 
+create index on db.people (id);
 create index on db.people (unit_id);
 
 -------------------------------------------
