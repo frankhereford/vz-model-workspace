@@ -421,11 +421,10 @@ before insert or update on db.crashes
 for each row
 execute procedure db.update_crash_location();
 
-
 --
--- Insert into change log on crash insert/update
+-- Insert into change log on insert/update
 --
-create or replace function db.insert_change_log_crashes()
+create or replace function db.insert_change_log()
 returns trigger
 language plpgsql
 as $$
@@ -439,7 +438,7 @@ begin
     end if;
 
    insert into db.change_log (record_id, record_type, operation_type, record_json, created_by) values
-    (record_id, TG_TABLE_NAME, lower(TG_OP), row_to_json(new), 'unknown');
+    (record_id, TG_TABLE_NAME, TG_OP, row_to_json(new), 'unknown');
     
     return null;
 END;
@@ -448,4 +447,20 @@ $$;
 create trigger insert_change_log_crashes
 after insert or update on db.crashes
 for each row
-execute procedure db.insert_change_log_crashes();
+execute procedure db.insert_change_log();
+
+--
+-- Insert into change log on unit insert/update
+--
+create trigger insert_change_log_units
+after insert or update on db.units
+for each row
+execute procedure db.insert_change_log();
+
+--
+-- Insert into change log on people insert/update
+--
+create trigger insert_change_log_people
+after insert or update on db.people
+for each row
+execute procedure db.insert_change_log();
