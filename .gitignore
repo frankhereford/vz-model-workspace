@@ -1,1 +1,3 @@
 schemaspy-output/*
+.DS_Store
+python/cris_csvs/*
