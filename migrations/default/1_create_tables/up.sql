@@ -328,3 +328,5 @@ create table db.change_log (
     created_at timestamp with time zone default now(),
     created_by text not null
 );
+
+create index on db.change_log (record_id, record_type);
